@@ -1,0 +1,8 @@
+---
+- include: provision_base_dc_environment.yml
+  when: provision_base_dc_environment
+
+- include: ensure_section_provisioned.yml
+  with_items: "{{ spine_sections_order }}"
+  loop_control:
+    loop_var: spine_section_name

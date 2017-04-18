@@ -1,0 +1,1 @@
+{{ hostvars | private_ips_with_port(groups[aurora_zookeeper_quorum_group], aurora_zookeeper_port) | join(',') }}

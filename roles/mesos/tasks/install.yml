@@ -1,0 +1,36 @@
+---
+- name: Ensure that Mesosphere EL7 repository is present
+  yum:
+    name: "{{ mesos_repo_rpm_el7 }}"
+    state: present
+  when: ansible_lsb.major_release == '7'
+
+- name: Ensure that additional Mesos dependency repos are installed.
+  template:
+    src: "{{ item }}.repo.j2"
+    dest: "/etc/yum.repos.d/{{ item }}.repo"
+  with_items:
+    - WANdiscoSVN
+
+- name: Ensure that Mesos and its dependencies are present
+  yum:
+    name: "{{ item }}"
+    state: present
+  notify:
+    - Restart Mesos master via Monit
+    - Restart Mesos slave via Monit
+  with_items:
+    - "{{ mesos_pkgname }}"
+    - subversion-devel
+
+- name: Template the Mesos master systemd service file
+  template:
+    src: mesos-master.service.j2
+    dest: /usr/lib/systemd/system/mesos-master.service
+  when: ansible_lsb.major_release == '7' and 'master' in mesos_roles and not mesos_install_only
+
+- name: Template the Mesos slave systemd service file
+  template:
+    src: mesos-slave.service.j2
+    dest: /usr/lib/systemd/system/mesos-slave.service
+  when: ansible_lsb.major_release == '7' and 'slave' in mesos_roles and not mesos_install_only

@@ -1,0 +1,54 @@
+---
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat"
+  tags:
+    - stunnel
+
+- name: Ensure that the stunnel group is created
+  group:
+    name: "{{ stunnel_group }}"
+  tags:
+    - stunnel
+
+- name: Ensure that the stunnel user is created
+  user:
+    name: "{{ stunnel_user }}"
+    group: "{{ stunnel_group }}"
+  tags:
+    - stunnel
+
+- name: Ensure that stunnel directories are created and properly owned
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ stunnel_user }}"
+    group: "{{ stunnel_group }}"
+    recurse: yes
+  with_items:
+    - /var/run/stunnel4
+  tags:
+    - stunnel
+
+- include: ssl.yml
+  tags:
+    - stunnel
+
+- name: Template the stunnel configuration
+  template:
+    src: stunnel.conf.j2
+    dest: /etc/stunnel/stunnel.conf
+    owner: "{{ stunnel_user }}"
+    group: "{{ stunnel_group }}"
+    mode: 0644
+  notify:
+    - Restart stunnel
+  tags:
+    - stunnel
+
+- name: Ensure that the stunnel service is running
+  service:
+    name: stunnel
+    state: started
+    enabled: yes
+  tags:
+    - stunnel

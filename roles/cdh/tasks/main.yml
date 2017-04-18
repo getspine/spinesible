@@ -1,0 +1,14 @@
+---
+- name: Install Cloudera CDH GPG key
+  rpm_key:
+    key: "{{ cdh_gpg_key_url }}"
+    state: present
+  tags:
+    - cdh
+
+- name: Install Cloudera CDH repository RPM
+  yum:
+    name: "{{ cdh_rpm_url }}"
+    state: present
+  tags:
+    - cdh

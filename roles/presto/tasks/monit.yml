@@ -1,0 +1,35 @@
+---
+- name: Setup a Monit configuration for the Presto server
+  template:
+    src: presto.monit.j2
+    dest: /etc/monit.d/presto
+  register: presto_monit
+  tags:
+    - presto
+    - presto_config
+
+- name: Ensure that Monit is loaded with latest configuration
+  service:
+    name: monit
+    state: reloaded
+  when: presto_monit.changed
+  tags:
+    - presto
+    - presto_config
+
+- name: Wait for Monit to get its act together
+  pause:
+    seconds: 10
+  when: presto_monit.changed
+  tags:
+    - presto
+    - presto_config
+
+- name: Ensure that the Presto server is monitored by Monit
+  monit:
+    name: presto
+    state: monitored
+  ignore_errors: yes
+  tags:
+    - presto
+    - presto_config

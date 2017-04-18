@@ -1,0 +1,6 @@
+- name: Restart snapd
+  service:
+    name: snap-telemetry
+    state: restarted
+  tags:
+    - snap

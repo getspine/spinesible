@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+# Picks a random node from an Ansible group.
+
+from __future__ import print_function
+
+import os
+import random
+import sys
+import json
+
+from subprocess import Popen, PIPE
+
+
+DEFAULT_ANSIBLE_GROUP = 'elasticsearch'
+
+
+def popener(command):
+  c = command.split()
+  return Popen(c, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
+
+EC2_INVENTORY_SCRIPT_LOC = os.path.join(sys.path[0], '..', 'inventory', 'ec2')
+
+inventory_process = popener(EC2_INVENTORY_SCRIPT_LOC).stdout.read()
+inventory = json.loads(inventory_process)
+
+ansible_group = DEFAULT_ANSIBLE_GROUP
+if len(sys.argv) > 1:
+  ansible_group = sys.argv[1]
+
+ansible_group_tag = 'tag_ansible_group_{}'.format(ansible_group)
+
+if ansible_group_tag not in inventory:
+  sys.stderr.write(
+      'ERROR: Group {} was not found in the inventory.\n'.format(ansible_group_tag))
+  sys.stderr.flush()
+  sys.exit(-1)
+
+random_public_ip = random.choice(inventory[ansible_group_tag])
+private_ip = inventory['_meta']['hostvars'][random_public_ip]['ec2_private_ip_address']
+
+print(','.join([random_public_ip, private_ip]))
+sys.exit(0)

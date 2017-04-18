@@ -1,0 +1,7 @@
+---
+provision_iam_policies: {}
+
+provision_iam_roles: []
+provision_iam_users: []
+
+provision_iam: yes

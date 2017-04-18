@@ -1,0 +1,48 @@
+---
+elasticsearch_cluster_name: ansible
+
+elasticsearch_plugin_aws_tag_filters:
+  ansible_group: elasticsearch
+
+elasticsearch_should_format_volumes: no
+elasticsearch_data_volumes:
+  - volume: /dev/xvdf
+    mount_dir: /var/lib/elasticsearch/1
+
+elasticsearch_node_name: "{{ ec2_tag_Name }}"
+
+elasticsearch_user: elasticsearch
+elasticsearch_group: elasticsearch
+
+elasticsearch_version: 5.1.2
+elasticsearch_version_family: 5.x
+
+elasticsearch_gpg_key_url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+elasticsearch_yum_repo_url: "https://artifacts.elastic.co/packages/{{ elasticsearch_version_family }}/yum"
+
+elasticsearch_install_elastichq_plugin: no
+
+elasticsearch_total_ram_pct: 50.0
+
+elasticsearch_install_aws_plugin: yes
+elasticsearch_plugin_aws_version: 2.7.1
+elasticsearch_plugin_aws_region: us-east-1
+elasticsearch_plugin_marvel_version: latest
+
+elasticsearch_install_marvel_plugin: yes
+
+elasticsearch_max_open_files: 65535
+elasticsearch_home_dir: /usr/share/elasticsearch
+elasticsearch_plugin_dir: /usr/share/elasticsearch/plugins
+elasticsearch_log_dir: /var/log/elasticsearch
+elasticsearch_data_dir: /var/lib/elasticsearch
+elasticsearch_work_dir: /tmp/elasticsearch
+elasticsearch_conf_dir: /etc/elasticsearch
+
+elasticsearch_script_safety: yes
+
+document_indices: []
+
+elasticsearch_aws_plugins:
+  - discovery-ec2
+  - repository-s3

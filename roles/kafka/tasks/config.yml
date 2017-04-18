@@ -1,0 +1,37 @@
+---
+- name: Template Kafka configuration
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ kafka_config_dir }}/{{ item }}"
+  with_items: "{{ kafka_config_files }}"
+  notify:
+    - Restart Kafka server
+  tags:
+    - kafka
+    - kafka_config
+    - kafka_server
+
+- name: Create a systemd config for the Kafka server
+  template:
+    src: kafka.service.j2
+    dest: /etc/systemd/system/kafka.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart Kafka server
+  when: "'server' in kafka_roles"
+  tags:
+    - kafka
+    - kafka_config
+    - kafka_server
+
+- name: Ensure that the Kafka service is running
+  service:
+    name: kafka
+    state: started
+    enabled: yes
+  when: "'server' in kafka_roles"
+  tags:
+    - kafka
+    - kafka_server

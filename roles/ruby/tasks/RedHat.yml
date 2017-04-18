@@ -1,0 +1,28 @@
+---
+- name: Remove present Ruby RPMs
+  yum:
+    name: "{{ item }}"
+    state: removed
+  with_items:
+    - ruby
+    - ruby-libs
+
+- name: Install necessary packages for building Ruby
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - gcc
+    - gcc-c++
+    - make
+    - zlib-devel
+    - openssl-devel
+    - readline-devel
+    - ncurses-devel
+    - gdbm-devel
+    - db4-devel
+    - libffi-devel
+    - tk-devel
+    - libyaml
+    - libyaml-devel
+    - paco

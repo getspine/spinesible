@@ -1,0 +1,64 @@
+---
+- name: Template Presto configuration
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ presto_config_dir }}/{{ item }}"
+  with_items: "{{presto_config_files}}"
+  notify:
+    - Restart Presto server
+  tags:
+    - presto
+    - presto_config
+
+- name: Template Presto configuration for connectors
+  template:
+    src: "catalog/{{ item }}.j2"
+    dest: "{{ presto_config_dir }}/catalog/{{ item }}"
+  with_items: "{{presto_catalog_files}}"
+  notify:
+    - Restart Presto server
+  tags:
+    - presto
+    - presto_config
+
+- name: Template Presto Kafka schemas for the Kafka connector
+  template:
+    src: "kafka/{{ item }}.j2"
+    dest: "{{ presto_config_dir }}/kafka/{{ item }}"
+  with_items: "{{presto_kafka_schema_files}}"
+  notify:
+    - Restart Presto server
+  tags:
+    - presto
+    - presto_config
+
+- name: Create a systemd config for the Presto server
+  template:
+    src: presto.service.j2
+    dest: /etc/systemd/system/presto.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart Presto server
+  tags:
+    - presto
+    - presto_config
+
+- name: Ensure that the Presto service is running
+  service:
+    name: presto
+    state: started
+    enabled: yes
+  tags:
+    - presto
+
+- name: Ensure that Presto firewall ports are open (if desired)
+  firewalld:
+    port: "{{ item.port }}/{{ item.type }}"
+    state: enabled
+    permanent: yes
+  with_items: "{{presto_firewall_ports}}"
+  tags:
+    - presto
+    - presto_firewall

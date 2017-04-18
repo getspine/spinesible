@@ -1,0 +1,42 @@
+---
+- name: Figure out where the keytab files should land
+  set_fact:
+    krb5_keytab_dir: "{{ role_path }}/files"
+    cur_krb5_keytab: "{{ krb5_keytab_defs[cur_krb5_keytab_name] }}"
+    cur_krb5_keytab_loc: "{{ role_path }}/files/{{ kdc_realm_name }}.{{ cur_krb5_keytab_name }}.{{ ec2_tag_hostname }}.keytab"
+
+- name: "Check for the presence of the {{ cur_krb5_keytab_name }} keytab in S3 for host: {{ ec2_tag_hostname }}"
+  local_action:
+    module: s3
+    bucket: "{{ spine_s3_buckets.aaa }}"
+    mode: list
+    prefix: "keytab/{{ kdc_realm_name }}/{{ cur_krb5_keytab_name }}/{{ ec2_tag_hostname }}"
+  become: no
+  register: keytab_list_response
+
+- debug:
+    var: keytab_list_response
+
+- include: create_keytab.yml
+  when: keytab_list_response.s3_keys|length == 0 or krb5_recreate_keytabs
+
+- name: "Downloads and decrypts the latest {{ cur_krb5_keytab_name }} keytab from S3 for host: {{ ec2_tag_hostname }}"
+  local_action: |
+    command aws s3 cp --sse aws:kms --sse-kms-key-id "{{ spine_kms_keys.aaa }}" \
+    "s3://{{ spine_s3_buckets.aaa }}/keytab/{{ kdc_realm_name }}/{{ cur_krb5_keytab_name }}/{{ ec2_tag_hostname }}" \
+    "{{ cur_krb5_keytab_loc }}"
+  environment:
+    AWS_PROFILE: "{{ spine_datacenter }}"
+  become: no
+
+- name: "Copy the latest {{ cur_krb5_keytab_name }} keytab to host: {{ ec2_tag_hostname }}"
+  copy:
+    src: "files/{{ kdc_realm_name }}.{{ cur_krb5_keytab_name }}.{{ ec2_tag_hostname }}.keytab"
+    dest: "{{ cur_krb5_keytab.dest | default('/etc/krb5.keytab') }}"
+    owner: "{{ cur_krb5_keytab.owner | default('root') }}"
+    group: "{{ cur_krb5_keytab.group | default('root') }}"
+    mode: "{{ cur_krb5_keytab['mode'] | default('0600') }}"
+
+- name: "Cleanup the local {{ cur_krb5_keytab_name }} keytab for host: {{ ec2_tag_hostname }}"
+  local_action: "command rm -f {{ cur_krb5_keytab_loc }}"
+  become: no

@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  author: Steve Salevan <steve@spi.ne>
+  description: Installs and configures Apache Thrift
+  license: MIT
+  min_ansible_version: 1.2
+
+dependencies:
+  - role: autoconf
+  - role: automake
+  - role: bison
+  - role: epel

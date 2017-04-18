@@ -1,0 +1,8 @@
+---
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat"
+
+- name: Workaround ansible_lsb bug by re-running setup module
+  setup:
+  tags:
+    - lsb

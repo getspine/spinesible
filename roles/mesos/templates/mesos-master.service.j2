@@ -1,0 +1,19 @@
+# {{ ansible_managed }}
+# systemd service supporting the Mesos master process.
+
+[Unit]
+Description=Mesos master process
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/mesos-master-startup
+Restart=always
+StartLimitInterval=0
+RestartSec=15
+LimitNOFILE=infinity
+TasksMax=infinity
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

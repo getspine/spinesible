@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+# Configures the Mesos master daemon.
+
+MESOS_MASTER_ARGS=(
+  --cluster='{{ mesos_cluster_name }}'
+  --ip='{{ mesos_ip }}'
+  --log_dir='{{ mesos_log_dir }}/master'
+  --port='{{ mesos_master_port }}'
+  --quorum='{{ mesos_quorum_size }}'
+  --work_dir='{{ mesos_work_dir }}/master'
+  --zk="$(cat /etc/mesos/zk)"
+)

@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+
+[logstash-{{ logstash_version_family }}]
+name=Elastic repository for {{ logstash_version_family }} packages
+baseurl=https://artifacts.elastic.co/packages/{{ logstash_version_family }}/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md

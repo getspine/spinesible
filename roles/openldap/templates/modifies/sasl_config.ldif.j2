@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+# Converts SASL users to LDAP users.
+
+dn: cn=config
+add: olcAuthzRegexp
+olcAuthzRegexp: {{ openldap_authz_regexp }}
+
+dn: cn=config
+add: olcSaslHost
+olcSaslHost: {{ openldap_sasl_host }}
+
+dn: cn=config
+add: olcSaslRealm
+olcSaslRealm: {{ openldap_sasl_realm }}

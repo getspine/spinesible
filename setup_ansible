@@ -1,0 +1,30 @@
+#!/bin/bash
+# Establishes an Ansible base environment within a virtualenv.
+
+set -eo pipefail
+
+IS_OSX=0
+IS_RED_HAT=0
+IS_DEBIAN=0
+
+function detect_env() {
+  if which dpkg &> /dev/null; then
+    IS_DEBIAN=1
+  elif which rpm &> /dev/null; then
+    IS_RED_HAT=1
+  elif [[ "${os_uname}" == "Darwin" ]]; then
+    IS_OSX=1
+  fi
+}
+
+echo ' - Creating a new Python virtualenv...'
+virtualenv env || true
+source env/bin/activate
+
+echo ' - Installing Python dependencies into virtualenv...'
+detect_env
+if [ ${IS_RED_HAT} -eq 1 ]; then
+  export PYCURL_SSL_LIBRARY=nss
+fi
+
+pip install -r requirements.txt

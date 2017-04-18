@@ -1,0 +1,298 @@
+# Datacenter-specific configuration:
+---
+spine_datacenter: us-east-1
+vault_dc_creds: "{{ vault_datacenter_creds[spine_datacenter] }}"
+
+# NOTE: You'll likely want to change this with your own custom name.
+spine_s3_buckets:
+  es: spinesible-es-us-east-1
+
+# If you wish to send all logs to Loggly, replace this field with your customer token.
+loggly_customer_token: REPLACEME
+
+spine_datacenter_zones:
+  - us-east-1a
+  - us-east-1b
+  - us-east-1d
+  - us-east-1e
+
+spine_base_ami: ami-6d1c2007
+spine_base_snapshot: snap-9ac0730c
+
+spine_sections_order:
+  - backbone
+
+spine_sections:
+  backbone:
+    route53_zone: backbone.example.com
+
+    vpcs:
+      - 10.0.0.0/16
+
+    default_egress_rules:
+      - proto: all
+        from_port: 0
+        to_port: 65535
+        cidr_ip: 0.0.0.0/0
+
+    provisioning_order:
+      - bastion
+      - aurora
+      - aggregator
+
+    roles:
+      aggregator:
+        image: "{{ spine_base_ami }}"
+        base_volume_snapshot: "{{ spine_base_snapshot }}"
+        instance_type: t2.large
+        instance_profile_name: spine_es
+        quantity: 3
+        base_volume_type: gp2
+        base_volume_size_gb: 100
+        sg_rules:
+          - proto: icmp
+            from_port: 8 # icmp type, -1 = any type
+            to_port: -1  # icmp subtype, -1 = any type
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 2181
+            to_port: 2181
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 2888
+            to_port: 2888
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 3888
+            to_port: 3888
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 5140
+            to_port: 5140
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 9092
+            to_port: 9092
+            cidr_ip: 10.0.0.0/16
+
+      aurora:
+        image: "{{ spine_base_ami }}"
+        base_volume_snapshot: "{{ spine_base_snapshot }}"
+        instance_type: t2.large
+        quantity: 3
+        base_volume_type: gp2
+        base_volume_size_gb: 50
+        sg_rules:
+          - proto: icmp
+            from_port: 8
+            to_port: -1
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 2181
+            to_port: 2181
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 2888
+            to_port: 2888
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 3888
+            to_port: 3888
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 5050
+            to_port: 5050
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 5051
+            to_port: 5051
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 8081
+            to_port: 8081
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 8083
+            to_port: 8083
+            cidr_ip: 10.0.0.0/16
+
+      bastion:
+        image: "{{ spine_base_ami }}"
+        base_volume_snapshot: "{{ spine_base_snapshot }}"
+        instance_type: t2.small
+        quantity: 1
+        base_volume_type: gp2
+        base_volume_size_gb: 10
+        sg_rules:
+          - proto: icmp
+            from_port: -1
+            to_port: -1
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 53
+            to_port: 53
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+          - proto: udp
+            from_port: 1194
+            to_port: 1194
+            cidr_ip: 0.0.0.0/0
+          - proto: udp
+            from_port: 4300
+            to_port: 4300
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 32768
+            to_port: 61000
+            cidr_ip: 0.0.0.0/0
+          - proto: udp
+            from_port: 32768
+            to_port: 61000
+            cidr_ip: 0.0.0.0/0
+
+      es_data:
+        image: "{{ spine_base_ami }}"
+        base_volume_snapshot: "{{ spine_base_snapshot }}"
+        instance_type: t2.large
+        instance_profile_name: spine_es
+        quantity: 3
+        base_volume_type: gp2
+        base_volume_size_gb: 20
+        create_ebs_volume: yes
+        ebs_size_gb: 200
+        ebs_device_name: /dev/sdf
+        ebs_volume_type: gp2
+        sg_rules:
+          - proto: icmp
+            from_port: 8
+            to_port: -1
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 9200
+            to_port: 9200
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 9300
+            to_port: 9300
+            cidr_ip: 10.0.0.0/16
+        tags:
+          es_cluster: "spinesible-{{ spine_datacenter }}"
+
+      es_master:
+        image: "{{ spine_base_ami }}"
+        base_volume_snapshot: "{{ spine_base_snapshot }}"
+        instance_type: t2.large
+        instance_profile_name: spine_es
+        quantity: 3
+        base_volume_type: gp2
+        base_volume_size_gb: 20
+        sg_rules:
+          - proto: icmp
+            from_port: 8
+            to_port: -1
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 9200
+            to_port: 9200
+            cidr_ip: 10.0.0.0/16
+          - proto: tcp
+            from_port: 9300
+            to_port: 9300
+            cidr_ip: 10.0.0.0/16
+        tags:
+          es_cluster: "spinesible-{{ spine_datacenter }}"
+
+spine_iam_policies:
+  es: es.json.j2
+
+spine_iam_users:
+  - name: spine_es
+    policies:
+      - es
+
+spine_iam_roles:
+  - name: spine_es
+    trust_policy: role_policy_ec2.json.j2
+    policies:
+      - es
+
+spine_route53_zones:
+  - zone: 0.10.in-addr.arpa.
+    associate_vpcs: yes
+    vpcs:
+      - "{{ spine_vpc_to_id['10.0.0.0/16'] }}"
+
+  - zone: backbone.example.com.
+    associate_vpcs: yes
+    vpcs:
+      - "{{ spine_vpc_to_id['10.0.0.0/16'] }}"
+
+spine_vpcs_order:
+  - 10.0.0.0/16
+
+spine_vpcs:
+  10.0.0.0/16:
+    cidr_block: 10.0.0.0/16
+    name: vpc-backbone
+    tags:
+      Name: vpc-backbone
+    subnets:
+      - cidr: 10.0.0.0/18
+        az: us-east-1a
+        tags:
+          Name: subnet-backbone-a
+      - cidr: 10.0.64.0/18
+        az: us-east-1b
+        tags:
+          Name: subnet-backbone-b
+      - cidr: 10.0.128.0/18
+        az: us-east-1d
+        tags:
+          Name: subnet-backbone-d
+      - cidr: 10.0.192.0/18
+        az: us-east-1e
+        tags:
+          Name: subnet-backbone-e
+    internet_gateway: yes
+
+spine_vpc_route_tables:
+  10.0.0.0/16:
+    subnets:
+      - 10.0.0.0/18
+      - 10.0.64.0/18
+      - 10.0.128.0/18
+      - 10.0.192.0/18
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: igw

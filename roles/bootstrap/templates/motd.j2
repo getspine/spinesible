@@ -1,0 +1,18 @@
+=====================================================================
+
+WARNING: Unauthorized access to this system is forbidden and will be
+  prosecuted by law. By accessing this system, you agree that your
+    actions may be monitored if unauthorized usage is suspected.
+
+=====================================================================
+Public IP: {{ inventory_hostname }}
+Private IP: {{ ansible_eth0.ipv4.address }}
+Hostname: {{ ansible_hostname }}
+{% for group in group_names | sort %}
+Group: {{ group }}
+{% endfor %}
+Cores: {{ ansible_processor_cores }}
+RAM: {{ ansible_memtotal_mb }} MB
+
+Last Bootstrap: {{ ansible_date_time.date }} {{ ansible_date_time.time }} {{ ansible_date_time.tz }}
+=====================================================================

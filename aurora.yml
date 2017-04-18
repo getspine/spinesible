@@ -1,0 +1,43 @@
+---
+- name: Establishes a single-node Aurora cluster
+  hosts: tag_ansible_group_aurora
+  become: true
+  become_user: root
+  become_method: sudo
+
+  vars_files:
+    - "dc_config/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+    - "dc_vars/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+
+  vars:
+    aurora_version: 0.17.0
+    aurora_cluster_name: "spinesible-{{ spine_datacenter }}"
+    aurora_extra_flags:
+      - "-allow_docker_parameters=true"
+      - "-ip={{ ec2_private_ip_address }}"
+    aurora_roles:
+      - client
+      - scheduler
+    aurora_schedulers_group: tag_ansible_group_aurora
+    aurora_zookeeper_quorum_group: tag_ansible_group_aurora
+    aurora_should_upgrade: "{{ AURORA_SHOULD_UPGRADE | default('yes') }}"
+
+    mesos_containerizers:
+      - docker
+      - mesos
+    mesos_roles:
+      - master
+    mesos_version: 1.1.0
+    mesos_zookeeper_quorum_group: tag_ansible_group_aurora
+
+    thermos_should_upgrade: "{{ THERMOS_SHOULD_UPGRADE | default('yes') }}"
+
+    zookeeper_hosts_group: tag_ansible_group_aurora
+
+  roles:
+    - selinux
+    - zookeeper
+    - mesos
+    - thermos
+    - nginx
+    - aurora

@@ -1,0 +1,8 @@
+---
+- include: install.yml
+  when: not flume_skip_install
+
+- include: config.yml
+
+- include: dns.yml
+  when: flume_update_route53

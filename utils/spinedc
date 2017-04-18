@@ -1,0 +1,7 @@
+#!/bin/bash
+# Establishes necessary environment variables to support multi-DC Ansible execution.
+
+export SPINE_DATACENTER="${1}"
+export AWS_PROFILE="${1}"
+export AWS_REGION="${1}"
+shift

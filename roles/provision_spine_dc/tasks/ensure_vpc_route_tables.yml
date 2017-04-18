@@ -1,0 +1,27 @@
+---
+- name: "Refresh Spine datacenter vars for DC: {{ spine_datacenter }}"
+  include_vars:
+    file: "dc_vars/{{ spine_datacenter }}.yml"
+
+- debug:
+    var: spine_cur_vpc_name
+
+- name: Determine VPC ID and route table definition
+  set_fact:
+    spine_cur_vpc_id: "{{ spine_vpc_to_id[spine_cur_vpc_name] }}"
+    spine_cur_route_table: "{{ spine_vpc_route_tables[spine_cur_vpc_name] }}"
+
+- name: Set up public subnet route table
+  ec2_vpc_route_table:
+    state: present
+    vpc_id: "{{ spine_cur_vpc_id }}"
+    region: "{{ spine_datacenter }}"
+    profile: "{{ spine_datacenter }}"
+    subnets: "{{ spine_cur_route_table.subnets }}"
+    routes: "{{ spine_cur_route_table.routes }}"
+    tags:
+      Name: "routes-{{ spine_cur_vpc_name }}"
+  register: vpc_route_response
+
+- debug:
+    var: vpc_route_response

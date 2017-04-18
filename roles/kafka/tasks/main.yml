@@ -1,0 +1,5 @@
+---
+- include: install.yml
+  when: not kafka_skip_install
+
+- include: config.yml

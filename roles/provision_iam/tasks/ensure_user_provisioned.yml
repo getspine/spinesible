@@ -1,0 +1,17 @@
+---
+- name: "Ensure that IAM user is provisioned: {{ cur_iam_user.name }}"
+  iam:
+    iam_type: user
+    name: "{{ cur_iam_user.name }}"
+    state: present
+    access_key_state: create
+  register: cur_iam_user_create_response
+
+- debug:
+    var: cur_iam_user_create_response
+
+- name: "Ensure that all policies are attached: {{ cur_iam_user.policies | join(',') }}"
+  include: attach_iam_policy_user.yml
+  with_items: "{{ cur_iam_user.policies }}"
+  loop_control:
+    loop_var: cur_iam_user_policy_name

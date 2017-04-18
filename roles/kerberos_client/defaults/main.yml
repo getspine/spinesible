@@ -1,0 +1,21 @@
+---
+#defaults file for kerberos_client
+
+kdc_realm_name: REALM.NAME.COM
+
+# krb5 defaults
+krb5_log_default: FILE:/var/log/krb5libs.log
+krb5_log_kdc: FILE:/var/log/krb5kdc.log
+krb5_log_admin_server: FILE:/var/log/kadmind.log
+krb5_dns_lookup_realm: "false"
+krb5_dns_lookup_kdc: "false"
+krb5_ticket_lifetime: 24h
+krb5_renew_lifetime: 7d
+krb5_forwardable: "true"
+krb5_proxiable: "true"
+
+krb5_keytabs: []
+krb5_keytab_defs: {}
+
+krb5_recreate_keytabs: no
+krb5_remove_recreated_keytabs: yes

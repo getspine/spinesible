@@ -1,0 +1,102 @@
+---
+- name: Install OpenTSDB package
+  yum:
+    name: "{{ opentsdb_package_url }}"
+    state: present
+  tags:
+    - opentsdb
+    - opentsdb_install
+
+- name: Configure OpenTSDB
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/opentsdb/{{ item }}"
+    mode: 0644
+  register: opentsdb_configs
+  with_items: "{{ opentsdb_config_files }}"
+  tags:
+    - opentsdb
+    - opentsdb_config
+
+- name: Ensure that OpenTSDB tables are created
+  shell: /usr/share/opentsdb/tools/create_table.sh && touch /usr/share/opentsdb/TABLES_CREATED
+  args:
+    creates: /usr/share/opentsdb/TABLES_CREATED
+  environment:
+    COMPRESSION: "{{ opentsdb_hbase_compression_method }}"
+    HBASE_HOME: /usr/lib/hbase/
+    JAVA_HOME: /usr/lib/jvm/java
+  tags:
+    - opentsdb
+    - opentsdb_config
+
+- name: Write an OpenTSDB systemd service script
+  template:
+    src: opentsdb.service.j2
+    dest: /etc/systemd/system/opentsdb.service
+    mode: 0644
+  tags:
+    - opentsdb
+
+- name: Ensure that OpenTSDB is running
+  service:
+    name: opentsdb
+    state: "{% if opentsdb_configs.changed %}restarted{% else %}started{% endif %}"
+  tags:
+    - opentsdb
+    - opentsdb_config
+
+- name: Write an OpenTSDB monit config
+  template:
+    src: opentsdb.monit.j2
+    dest: /etc/monit.d/opentsdb
+  register: opentsdb_monit_config
+  tags:
+    - opentsdb
+
+- name: Reload the Monit daemon
+  service:
+    name: monit
+    state: reloaded
+  when: opentsdb_monit_config.changed
+  tags:
+    - opentsdb
+
+- name: Ensure that OpenTSDB is monitored
+  monit:
+    name: opentsdb
+    state: monitored
+  when: opentsdb_monit_config.changed
+  ignore_errors: yes
+  tags:
+    - opentsdb
+
+- name: Ensure that OpenTSDB ports are open
+  firewalld:
+    port: "{{ item.port }}/{{ item.type }}"
+    state: enabled
+    permanent: yes
+    immediate: yes
+  with_items: "{{ opentsdb_ports }}"
+  ignore_errors: yes
+  tags:
+    - opentsdb
+    - opentsdb_firewall
+
+- name: Update DNS RR record tracking OpenTSDB frontends
+  local_action:
+    module: route53
+    command: create
+    zone: "{{ opentsdb_route53_zone }}"
+    private_zone: yes
+    vpc_id: "{{ opentsdb_route53_vpc_id }}"
+    record: "opentsdb.{{ opentsdb_route53_zone }}"
+    type: A
+    ttl: 30
+    value: "{{ hostvars | fetchlistfromdict(groups[opentsdb_group]) | map(attribute='ec2_private_ip_address') | list }}"
+  become: no
+  run_once: yes
+  when: opentsdb_update_route53
+  tags:
+    - opentsdb
+    - opentsdb_dns

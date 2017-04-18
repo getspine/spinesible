@@ -1,0 +1,27 @@
+---
+docker_roles:
+  - docker
+
+docker_authenticate: no
+docker_enable_gc: no
+
+docker_email: dev@null.com
+docker_username: username
+docker_password: password
+
+docker_options:
+  - "--selinux-enabled"
+  - "--log-driver=journald"
+
+docker_packages:
+  - docker-io
+
+docker_additional_registries: []
+docker_block_registries: []
+docker_insecure_registries: []
+
+# Docker registry options:
+docker_registry_port: 5000
+
+docker_failure_cycles_before_restart: 2
+docker_registry_failure_cycles_before_restart: 2

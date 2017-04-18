@@ -1,0 +1,21 @@
+# {{ ansible_managed }}
+# Configures OpenLDAP clients for domain: {{ openldap_domain_name }}
+
+# See ldap.conf(5) for details
+# This file should be world readable but not world writable.
+
+BASE    {{ openldap_dc }}
+{% if openldap_enable_ssl %}
+URI     ldaps://{{ openldap_master_host }}
+{% endif %}
+{% if not openldap_enable_ssl %}
+URI     ldap://{{ openldap_master_host }}
+{% endif %}
+
+{% if openldap_enable_ssl %}
+TLS_CACERT {{ openldap_ssl_ca_cert }}
+{% endif %}
+
+{% if openldap_enable_sasl %}
+SASL_MECH GSSAPI
+{% endif %}

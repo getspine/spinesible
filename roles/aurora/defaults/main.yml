@@ -1,0 +1,70 @@
+---
+aurora_schedulers: "{{ hostvars | private_ips(groups[aurora_schedulers_group]) | join(',') }}"
+aurora_schedulers_group: tag_ansible_group_aurora
+
+aurora_include_destroy: no
+
+aurora_version: 0.17.0
+
+aurora_roles:
+  - client
+  - scheduler
+
+aurora_group: aurora
+
+aurora_thermos_user: spine
+
+aurora_cluster_name: main
+
+aurora_serverset_zk_path: /aurora/scheduler
+aurora_native_log_zk_path: /aurora/replicated-log
+
+aurora_state_dir: /var/run/aurora
+aurora_native_log_path: db
+aurora_backup_path: backups
+
+aurora_should_upgrade: no
+
+aurora_native_log_quorum_size: 1
+
+aurora_jvm_flags: []
+
+aurora_enable_nginx_ssl: no
+aurora_nginx_ssl_host: aurora.backbone.example.com
+
+aurora_enable_kerberos: no
+aurora_kerberos_principal: "HTTP/aurora.backbone.example.com@{{ kdc_realm_name }}"
+aurora_kerberos_keytab: path/to/aurora.backbone.example.com.keytab
+aurora_ldap_host: ldap://ldapHost:ldapPort
+aurora_ldap_filter: uid={0},ou=users,dc=mycompany,dc=com
+aurora_kerberos_flags: []
+
+aurora_extra_flags:
+  - "-allow_docker_parameters=true"
+
+aurora_http_port: 8081
+aurora_libprocess_port: 8083
+
+aurora_http_timeout_secs: 2
+aurora_restart_cycles: 10
+
+aurora_thermos_ram_mb: 0
+aurora_thermos_cpu: 0
+
+aurora_enable_announcer: no
+
+aurora_zookeeper_quorum: "{{ hostvars | private_ips(groups[aurora_zookeeper_quorum_group]) }}"
+aurora_zookeeper_quorum_group: tag_ansible_group_aurora
+aurora_zookeeper_port: 2181
+
+aurora_zookeeper_username: ""
+aurora_zookeeper_password: ""
+
+aurora_log_level: INFO
+
+aurora_bin_dir: /usr/bin/aurora
+aurora_conf_dir: /etc/aurora
+aurora_lib_dir: /usr/lib/aurora
+aurora_log_dir: /var/log/aurora
+
+aurora_jvm_home: /usr/lib/jvm/jre

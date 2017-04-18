@@ -1,0 +1,38 @@
+---
+- name: Figure out keytab creation/distribution parameters
+  set_fact:
+    selected_aaa_host: "{{ groups['tag_ansible_group_aaa'] | random }}"
+    cur_krb5_principal: "{{ cur_krb5_keytab_name }}/{{ ec2_tag_hostname }}"
+    cur_tgt_maxlife: "{{ krb5_keytab_defs[cur_krb5_keytab_name]['max_life'] | default('1 day') }}"
+    cur_tgt_maxrenewlife: "{{ krb5_keytab_defs[cur_krb5_keytab_name]['max_renew_life'] | default('7 days') }}"
+    cur_keytab_dest: "/tmp/{{ kdc_realm_name }}.{{ cur_krb5_keytab_name }}.{{ ec2_tag_hostname }}.keytab"
+    fq_cur_krb5_principal: "{{ cur_krb5_keytab_name }}/{{ ec2_tag_hostname }}@{{ kdc_realm_name }}"
+
+- name: "Ensure that Kerberos principal exists: {{ fq_cur_krb5_principal }}"
+  command: "kadmin.local -q 'addprinc -randkey {{ cur_krb5_principal }}'"
+  delegate_to: "{{ selected_aaa_host }}"
+  ignore_errors: yes
+
+- name: "Ensure that the keytab location is cleared for principal: {{ fq_cur_krb5_principal }}"
+  file:
+    path: "{{ cur_keytab_dest }}"
+    state: absent
+  delegate_to: "{{ selected_aaa_host }}"
+
+- name: "Create a keytab for principal: {{ fq_cur_krb5_principal }}"
+  command: "kadmin.local -q 'ktadd -k {{ cur_keytab_dest }} {{ fq_cur_krb5_principal }}'"
+  delegate_to: "{{ selected_aaa_host }}"
+
+- name: "Encrypt and copy keytab into S3 for principal: {{ fq_cur_krb5_principal }}"
+  command: |
+    aws s3 cp --sse aws:kms --sse-kms-key-id "{{ spine_kms_keys.aaa }}" \
+    "{{ cur_keytab_dest }}" \
+    "s3://{{ spine_s3_buckets.aaa }}/keytab/{{ kdc_realm_name }}/{{ cur_krb5_keytab_name }}/{{ ec2_tag_hostname }}"
+  delegate_to: "{{ selected_aaa_host }}"
+
+- name: "Ensure that the keytab location is cleared for principal: {{ fq_cur_krb5_principal }}"
+  file:
+    path: "{{ cur_keytab_dest }}"
+    state: absent
+  when: krb5_remove_recreated_keytabs
+  delegate_to: "{{ selected_aaa_host }}"

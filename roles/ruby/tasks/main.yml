@@ -1,0 +1,57 @@
+---
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat"
+  tags:
+    - ruby
+
+- name: Download the Ruby archive requested via ruby_version
+  get_url:
+    url: "{{ ruby_archive }}"
+    dest: "{{ ruby_source_dir }}/ruby-{{ ruby_version }}.tar.gz"
+  register: ruby_download
+  tags:
+    - ruby
+
+- name: Extract the Ruby archive
+  command: "tar xzf ruby-{{ ruby_version }}.tar.gz"
+  args:
+    chdir: "{{ ruby_source_dir }}"
+    creates: "{{ ruby_source_dir }}/ruby-{{ ruby_version }}"
+  when: ruby_download.changed
+  tags:
+    - ruby
+
+- name: Configure the Ruby build environment
+  command: "./configure --prefix='{{ ruby_install_dir }}' {{ ruby_configure_options }}"
+  args:
+    chdir: "{{ ruby_source_dir }}/ruby-{{ ruby_version }}"
+    creates: "{{ ruby_install_dir }}/bin/ruby"
+  when: ruby_download.changed
+  tags:
+    - ruby
+
+- name: Build all Ruby binaries
+  command: make
+  args:
+    chdir: "{{ ruby_source_dir }}/ruby-{{ ruby_version }}"
+    creates: "{{ ruby_install_dir }}/bin/ruby"
+  when: ruby_download.changed
+  tags:
+    - ruby
+
+- name: Install Ruby via paco for ease of upgrading
+  command: paco -D make install
+  args:
+    chdir: "{{ ruby_source_dir }}/ruby-{{ ruby_version }}"
+    creates: "{{ ruby_install_dir }}/bin/ruby"
+  when: ruby_download.changed
+  tags:
+    - ruby
+
+- name: Install Bundler gem
+  gem:
+    name: bundler
+    state: present
+    executable: "{{ ruby_install_dir }}/bin/gem"
+  tags:
+    - ruby

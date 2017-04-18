@@ -1,0 +1,115 @@
+---
+- name: Create OpenLDAP user's group
+  group:
+    name: "{{ openldap_group }}"
+    system: yes
+  tags:
+    - openldap
+    - openldap_server
+
+- name: Create OpenLDAP user
+  user:
+    name: "{{ openldap_user }}"
+    group: "{{ openldap_group }}"
+    home: "{{ openldap_state_dir }}"
+    system: yes
+  tags:
+    - openldap
+    - openldap_server
+
+- name: Ensure that OpenLDAP directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+    owner: "{{ openldap_user }}"
+    group: "{{ openldap_group }}"
+  with_items:
+    - "{{ openldap_conf_dir }}/{{ openldap_certs_path }}"
+    - "{{ openldap_conf_dir }}/{{ openldap_ldif_path }}"
+    - "{{ openldap_state_dir }}/{{ openldap_domain_name }}"
+  tags:
+    - openldap
+    - openldap_server
+
+- name: Setup OpenLDAP daemon sysconfig
+  template:
+    src: slapd.sysconfig.j2
+    dest: /etc/sysconfig/ldap
+    mode: 0755
+  register: openldap_slapd_daemon_defaults
+  notify:
+    - Restart slapd
+  tags:
+    - openldap
+    - openldap_server
+
+- name: Hash LDAP root user's password
+  shell: "slappasswd -s {{ openldap_root_password }}"
+  register: hashed_openldap_root_password
+  tags:
+    - openldap
+    - openldap_additions
+    - openldap_modifies
+    - openldap_schema
+    - openldap_server
+
+- name: Ensure that OpenLDAP server service is running
+  service:
+    name: slapd
+    state: started
+    enabled: yes
+  tags:
+    - openldap
+    - openldap_server
+
+- name: Setup an OpenLDAP server monit configuration
+  template:
+    src: slapd.monit.j2
+    dest: /etc/monit.d/slapd
+  register: slapd_monit
+  tags:
+    - openldap
+    - openldap_server
+
+- name: Ensure that Monit is reloaded
+  service:
+    name: monit
+    state: reloaded
+  when: slapd_monit.changed
+  tags:
+    - openldap
+    - openldap_server
+
+- name: Wait for Monit to get its act together
+  pause:
+    seconds: 10
+  when: slapd_monit.changed
+  tags:
+    - openldap
+    - openldap_server
+
+- name: Ensure that the OpenLDAP server is monitored via Monit
+  monit:
+    name: slapd
+    state: monitored
+  tags:
+    - openldap
+    - openldap_server
+
+- name: Make a directory to remember all OpenLDAP schema changes
+  file:
+    path: "{{ openldap_state_dir }}/ldif_done"
+    state: directory
+    recurse: yes
+  tags:
+    - openldap
+    - openldap_server
+
+- include: load_schemas.yml
+  tags:
+    - openldap
+    - openldap_schema
+    - openldap_users
+
+- include: backup.yml

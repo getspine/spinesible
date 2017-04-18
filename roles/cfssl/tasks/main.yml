@@ -1,0 +1,9 @@
+---
+- include: install.yml
+  when: cfssl_install
+  tags:
+    - cfssl
+
+- include: setup.yml
+  tags:
+    - cfssl

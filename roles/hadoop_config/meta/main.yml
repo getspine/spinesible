@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  author: Steve Salevan <steve@spi.ne>
+  description: Configures Hadoop and the Hadoop client
+  license: MIT
+  min_ansible_version: 1.4
+
+dependencies:
+  - cdh

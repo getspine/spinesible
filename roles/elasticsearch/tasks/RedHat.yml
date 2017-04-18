@@ -1,0 +1,29 @@
+---
+- name: Add the Elasticsearch GPG key
+  rpm_key:
+    key: "{{ elasticsearch_gpg_key_url }}"
+    state: present
+
+- name: Add the Elasticsearch repository
+  template:
+    src: elasticsearch.repo.j2
+    dest: /etc/yum.repos.d/elasticsearch.repo
+    mode: 0644
+
+- name: Install the Elasticsearch package
+  yum:
+    pkg: "elasticsearch-{{ elasticsearch_version }}"
+    state: installed
+
+- name: Install the Kibana package
+  yum:
+    pkg: "kibana-{{ elasticsearch_version }}"
+    state: installed
+
+- name: Install needed Pip packages for ES shell
+  pip:
+    name: elasticsearch
+    state: present
+  tags:
+    - elasticsearch
+    - elasticsearch_shell

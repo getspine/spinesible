@@ -1,0 +1,12 @@
+filter {
+  throttle {
+    after_count => {{ logstash_throttle_after_count }}
+    period => {{ logstash_throttle_period }}
+    max_age => {{ logstash_throttle_max_age }}
+    key => "{{ logstash_throttle_key }}"
+    add_tag => "throttled"
+  }
+  if "throttled" in [tags] {
+    drop { }
+  }
+}

@@ -1,0 +1,8 @@
+#!/bin/sh
+
+/usr/bin/yum clean {{ yum_cron_clean_what }} >/dev/null
+EXITVALUE=$?
+if [ $EXITVALUE != 0 ]; then
+    /usr/bin/logger -t yum-cron-clean "ERROR: exited abnormally with [$EXITVALUE]"
+fi
+exit 0

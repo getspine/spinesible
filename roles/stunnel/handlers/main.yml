@@ -1,0 +1,7 @@
+---
+- name: Restart stunnel
+  service:
+    name: stunnel
+    state: restarted
+  tags:
+    - stunnel

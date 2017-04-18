@@ -1,0 +1,50 @@
+---
+# Phases: provision -> bootstrap -> setup -> finalize
+provision_spine_dc_phase: provision
+
+ec2_quantity: 1
+
+ec2_base_name: "{{ lookup('env', 'ANSIBLE_GROUP') }}"
+
+ec2_tags: ""
+
+ec2_key_name: default
+ec2_group: test
+ec2_instance_type: r3.xlarge
+
+# Official CentOS 6 x86_64 PV us-east
+#ec2_image: ami-c2a818aa
+
+# Official CentOS 6 x86_64 HVM us-west
+#ec2_image: ami-81d092b1
+
+# Official CentOS 7 x86_64 HVM us-east
+ec2_image: ami-96a818fe
+
+ec2_create_ebs_volume: yes
+ec2_ebs_device_name: /dev/sdf
+ec2_ebs_volume_type: standard
+ec2_ebs_size_gb: 50
+
+ec2_assign_public_ip: yes
+ec2_vpc_subnet_id: subnet-6b94e30e
+
+ec2_create_new_keypair: yes
+ec2_keypair_name: "ansible_{{ lookup('env', 'USER') }}"
+ec2_ssh_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+ec2_security_group: elasticsearch_sg
+
+ec2_create_route53_record: yes
+ec2_route53_zone: phil.collins.com.
+
+ec2_region: us-east-1
+
+ec2_disable_sudoers: yes
+
+ec2_bootstrap_user: root
+ec2_bootstrap_should_sudo: no
+ec2_bootstrap_create_base_user: yes
+ec2_bootstrap_should_format_volume: no
+
+provision_base_dc_environment: yes

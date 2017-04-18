@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+# Ensures that an OpenLDAP server daemon is running.
+
+check process slapd with pidfile /var/run/openldap/slapd.pid
+  start program = "/bin/systemctl start slapd.service"
+  stop program = "/bin/systemctl stop slapd.service"
+  if failed port 389 protocol ldap3 for {{ openldap_failure_cycles_before_restart }} cycles then restart
+  if {{ openldap_restart_cycles_before_timeout }} restarts within {{ openldap_restart_cycles_before_timeout }} cycles then timeout
+  depends on slapd_bin
+
+check file slapd_bin with path /usr/sbin/slapd
+  if failed checksum then unmonitor
+  if failed permission 755 then unmonitor
+  if failed uid root then unmonitor
+  if failed gid root then unmonitor

@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+# Adds users and groups DNs to a base LDAP DN.
+
+dn: ou=users,{{ openldap_dc }}
+objectClass: organizationalUnit
+ou: Users
+
+dn: ou=groups,{{ openldap_dc }}
+objectClass: organizationalUnit
+ou: Groups

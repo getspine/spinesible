@@ -1,0 +1,36 @@
+---
+- name: Check if Elasticsearch AWS plugin has been installed
+  stat:
+    path: "{{ elasticsearch_plugin_dir }}/cloud-aws"
+  register: aws_plugin_dir
+  tags:
+    - elasticsearch_aws
+
+- name: Remove old Elasticsearch plugin
+  shell: "/usr/share/elasticsearch/bin/elasticsearch-plugin remove {{ item }}"
+  become: true
+  become_method: sudo
+  ignore_errors: yes
+  with_items: "{{ elasticsearch_aws_plugins }}"
+  tags:
+    - elasticsearch_aws
+
+- name: Install Elasticsearch AWS plugin
+  shell: "/usr/share/elasticsearch/bin/elasticsearch-plugin install {{ item }}"
+  args:
+    chdir: "{{ elasticsearch_home_dir }}"
+  with_items: "{{ elasticsearch_aws_plugins }}"
+  notify:
+    - Restart Elasticsearch
+  tags:
+    - elasticsearch_aws
+
+- name: Ensure that all plugin contents are properly owned
+  file:
+    path: "{{ elasticsearch_plugin_dir }}"
+    state: directory
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    recurse: yes
+  tags:
+    - elasticsearch_aws

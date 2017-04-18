@@ -1,0 +1,87 @@
+---
+# tasks file for openvpn
+- name: Uninstall OpenVPN
+  include: uninstall.yml
+  when: openvpn_uninstall
+  tags:
+    - openvpn
+    - openvpn_uninstall
+
+- name: Install OpenVPN
+  include: install.yml
+  tags:
+    - openvpn
+    - openvpn_install
+
+- name: Copy or Generate server keys
+  include: server_keys.yml
+  tags:
+    - openvpn
+    - openvpn_server_keys
+
+# ignoreerrors is required for CentOS/RHEL 6
+# http://serverfault.com/questions/477718/sysctl-p-etc-sysctl-conf-returns-error
+- name: Enable IPv4 forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    ignoreerrors: yes
+  failed_when: false
+  when: not ci_build
+  tags:
+    - openvpn
+
+- name: Enable IPv6 forwarding
+  sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: 1
+    ignoreerrors: yes
+  when: openvpn_server_ipv6_network is defined and not ci_build
+  tags:
+    - openvpn
+
+- name: Ensure that firewalld is running
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+  tags:
+    - openvpn
+    - openvpn_firewall
+
+- name: Check for firewalld/iptables
+  command: firewall-cmd --state
+  register: firewalld
+  always_run: yes
+  changed_when: false  # Never report as changed
+  ignore_errors: yes
+  tags:
+    - openvpn
+    - openvpn_firewall
+
+- name: Add port rules (iptables)
+  include: iptables.yml
+  when: firewalld.rc != 0 and not ci_build
+  tags:
+    - openvpn
+    - openvpn_firewall
+
+- name: Add port rules (firewalld)
+  include: firewalld.yml
+  when: firewalld.rc == 0 and not ci_build
+  tags:
+    - openvpn
+    - openvpn_firewall
+
+- name: Generate client configs
+  include: client_keys.yml
+  when: clients is defined
+  tags:
+    - openvpn
+    - openvpn_client_keys
+
+- name: Configure OpenVPN
+  include: config.yml
+  tags:
+    - openvpn
+    - openvpn_config

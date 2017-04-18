@@ -1,0 +1,32 @@
+[logging]
+  default = {{ krb5_log_default }}
+  kdc = {{ krb5_log_kdc }}
+  admin_server = {{ krb5_log_admin_server }}
+
+[libdefaults]
+  default_realm = {{ kdc_realm_name | upper() }}
+  default_tgs_enctypes = {{ kdc_supported_enctypes }}
+  dns_lookup_realm = {{ krb5_dns_lookup_realm }}
+  dns_lookup_kdc = {{ krb5_dns_lookup_kdc }}
+  forwardable = {{ krb5_forwardable }}
+  proxiable = {{ krb5_proxiable }}
+  allow_weak_crypto = false
+  permitted_enctypes = {{ kdc_supported_enctypes }}
+  default_tkt_enctypes = {{ kdc_supported_enctypes }}
+  default_tgs_enctypes = {{ kdc_supported_enctypes }}
+  renew_lifetime = {{ krb5_renew_lifetime }}
+  ticket_lifetime = {{ krb5_ticket_lifetime }}
+
+[realms]
+  {{ kdc_realm_name | upper() }} = {
+    kdc = aaa.{{ kdc_realm_name | lower() }}
+    admin_server = aaa.{{ kdc_realm_name | lower() }}
+    supported_enctypes = {{ kdc_supported_enctypes }}
+    dict_file = /usr/share/dict/words
+    max_life = {{ kdc_ticket_max_life }}
+    max_renewable_life = {{ kdc_ticket_max_renewable_life }}
+  }
+
+[domain_realm]
+  .{{ kdc_realm_name | lower() }} = {{ kdc_realm_name | upper() }}
+  {{ kdc_realm_name | lower() }} = {{ kdc_realm_name | upper() }}

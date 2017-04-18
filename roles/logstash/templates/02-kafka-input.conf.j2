@@ -1,0 +1,6 @@
+input { 
+  kafka {
+    bootstrap_servers => '{{ logstash_kafka_bootstrap_servers | join(",") }}'
+    topics => {{ logstash_kafka_topics | to_json }} 
+  }
+}

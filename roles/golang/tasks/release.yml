@@ -1,0 +1,27 @@
+---
+- name: Ensure Golang packages are not installed
+  package:
+    name: "{{ item }}"
+    state: absent
+  with_items: "{{ golang_packages }}"
+  tags:
+    - golang
+    - golang_release
+
+- name: "Download Go release: {{ golang_version }}"
+  get_url:
+    url: "{{ golang_release_download_url }}"
+    dest: "/usr/local/{{ golang_tarball }}"
+  tags:
+    - golang
+    - golang_release
+
+- name: "Extract Go release: {{ golang_version }}"
+  unarchive:
+    src: "/usr/local/{{ golang_tarball }}"
+    dest: /usr/local
+    creates: /usr/local/go
+    copy: no
+  tags:
+    - golang
+    - golang_release

@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+# Runs through the setup steps for a Spine section via its provisioning_order.
+
+from __future__ import print_function
+
+import os
+import subprocess
+import sys
+
+import yaml
+
+
+dc_config_loc = '{0}/dc_config/{1}.yml'.format(
+    os.environ['DIR'], os.environ['SPINE_DATACENTER'])
+
+setup_playbook_cmd = (
+  '{0}/env/bin/ansible-playbook --vault-password-file ~/.vault -e @vault/creds.yml '
+  '-u ansibler -f 100 -i {1} {2}.yml'
+)
+
+setup_env = os.environ.copy()
+setup_env['ANSIBLE_FORCE_COLOR'] = 'true'
+setup_env['PURGE_EC2_CACHE'] = 'false'
+
+os.chdir(os.environ['DIR'])
+
+with open(dc_config_loc, 'r') as dc_config_file:
+  dc_config = yaml.load(dc_config_file.read())
+
+for spine_section_name in dc_config['spine_sections_order']:
+  print(' - Setting up section: {0}'.format(spine_section_name))
+  spine_section = dc_config['spine_sections'][spine_section_name]
+  for role_name in spine_section['provisioning_order']:
+    print(' - Setting up role: {0}'.format(role_name))
+    role_setup_cmd = setup_playbook_cmd.format(
+        os.environ['DIR'], os.environ['INV'], role_name)
+
+    # Passes any arguments we've been passed through to ansible-playbook.
+    if len(sys.argv) > 1:
+      role_setup_cmd = '{0} {1}'.format(role_setup_cmd, ' '.join(sys.argv[1:]))
+
+    # Runs ansible-playbook for the provided section and role.
+    print('Executing: {0}'.format(role_setup_cmd))
+    process = subprocess.Popen(role_setup_cmd, shell=True, stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT, env=setup_env)
+    for line in iter(process.stdout.readline, ''):
+      sys.stdout.write(line)
+    process.communicate()
+    if process.returncode != 0:
+      print(' ! Role {0} returned a non-zero exit code, aborting: {1}'.format(
+          role_name, process.returncode))
+      sys.exit(-1)
+
+    # We've obtained our current infrastructure layout, so we can speed up runs
+    # via enabling purge.
+    setup_env['PURGE_EC2_CACHE'] = 'false'
+
+print(' - All sections were set up!')
+sys.exit(0)

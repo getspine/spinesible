@@ -1,0 +1,46 @@
+---
+- name: Setup Flume user's group
+  group:
+    name: "{{ flume_group }}"
+    system: yes
+  tags:
+    - flume
+
+- name: Setup Flume user's user
+  user:
+    name: "{{ flume_user }}"
+    system: yes
+    group: "{{ flume_group }}"
+  tags:
+    - flume
+
+- name: Ensure that Flume directories are created
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: "{{ flume_user }}"
+    group: "{{ flume_group }}"
+  with_items:
+    - "{{ flume_dir }}"
+    - "{{ flume_config_dir }}"
+    - "{{ flume_log_dir }}"
+    - "{{ flume_data_dir }}"
+  tags:
+    - flume
+
+- name: Fetch Flume release tarball
+  get_url:
+    dest: "{{ flume_dir }}/apache-flume-{{ flume_version }}-bin.tar.gz"
+    url: "{{ flume_apache_mirror }}/flume/{{ flume_version }}/apache-flume-{{ flume_version }}-bin.tar.gz"
+  tags:
+    - flume
+
+- name: Uncompress the Flume release tarball
+  unarchive:
+    src: "{{ flume_dir }}/apache-flume-{{ flume_version }}-bin.tar.gz"
+    copy: no
+    creates: "{{ flume_dir }}/apache-flume-{{ flume_version }}-bin"
+    dest: "{{ flume_dir }}"
+  tags:
+    - flume

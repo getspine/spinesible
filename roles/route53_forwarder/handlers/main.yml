@@ -1,0 +1,8 @@
+---
+- name: Restart named
+  service:
+    name: named
+    state: restarted
+  tags:
+    - route53_forwarder
+    - route53_config

@@ -1,0 +1,40 @@
+---
+logstash_listen_port_beats: 5044
+
+logstash_elasticsearch_hosts:
+  - http://localhost:9200
+
+logstash_kafka_bootstrap_servers: "{{ hostvars | private_ips_with_port(groups[logstash_kafka_bootstrap_servers_group], 9092) }}"
+logstash_kafka_bootstrap_servers_group: tag_ansible_group_aggregator
+
+logstash_kafka_topics:
+  - logstash
+
+logstash_version: 5.1.2
+logstash_version_family: 5.x
+
+logstash_configs:
+  - 01-beats-input.conf
+  - 02-kafka-input.conf
+  - 30-elasticsearch-output.conf
+
+logstash_filter_configs:
+  - 10-syslog.conf
+  - 11-nginx.conf
+  - 12-apache.conf
+  - 15-drupal.conf
+
+logstash_local_syslog_path: /var/log/syslog
+logstash_monitor_local_syslog: no
+
+logstash_ssl_dir: /etc/pki/logstash
+logstash_ssl_certificate_file: ""
+logstash_ssl_key_file: ""
+
+logstash_throttle_after_count: 50
+logstash_throttle_key: "%{host}"
+logstash_throttle_period: 5
+logstash_throttle_max_age: 10
+
+logstash_install_plugins:
+  - logstash-input-beats

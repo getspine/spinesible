@@ -1,0 +1,16 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# Backs up the Kerberos KDC database to S3.
+
+TIMESTAMP=$(date +%s%N)
+
+echo " - Starting Kerberos KDC backup: ${TIMESTAMP}"
+
+S3_BUCKET='{{ kdc_backups_s3_bucket }}'
+KMS_KEY='{{ kdc_backups_kms_key }}'
+
+kdb5_util dump -verbose "/tmp/krb5kdc-${TIMESTAMP}.dump"
+aws s3 cp --sse aws:kms --sse-kms-key-id ${KMS_KEY} "/tmp/krb5kdc-${TIMESTAMP}.dump" "s3://${S3_BUCKET}/backups/krb5kdc/${TIMESTAMP}.dump"
+rm -rf "/tmp/krb5kdc-${TIMESTAMP}.dump"
+
+echo " - Backup succeeded: ${TIMESTAMP}"

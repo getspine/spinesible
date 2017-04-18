@@ -1,0 +1,29 @@
+---
+- name: Establishes a bastion host (VPN/SSH)
+  hosts: tag_ansible_group_bastion
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  vars_files:
+    - "dc_config/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+    - "dc_vars/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+
+  vars:
+    clients:
+      - ansibler
+
+    openvpn_dns_override: 10.0.0.2
+    openvpn_port: 4300
+    openvpn_push:
+      - route 10.0.0.0 255.255.0.0
+    openvpn_redirect_gateway: no
+    openvpn_server_network: 172.16.0.0
+    openvpn_server_netmask: 255.255.0.0
+
+    selinux_modules:
+      - spine_openvpn
+
+  roles:
+    - selinux
+    - openvpn

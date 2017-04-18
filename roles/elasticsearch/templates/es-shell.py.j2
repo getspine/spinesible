@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+# {{ ansible_managed }}
+
+import elasticsearch
+import IPython
+
+
+WELCOME_MESSAGE = """Welcome to the Elasticsearch shell.
+The following variables are available for use:
+
+es - An Elasticsearch client
+"""
+
+es = elasticsearch.Elasticsearch(['127.0.0.1'],
+    sniff_on_start=True, sniff_on_connection_fail=True)
+
+IPython.embed(header=WELCOME_MESSAGE)

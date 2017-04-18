@@ -1,0 +1,83 @@
+# {{ ansible_managed }}
+# Adds an ACL type to allow for Kerberos users and read indexes.
+
+# Borrowed from:
+# http://www.rjsystems.nl/en/2100-d6-kerberos-openldap-provider.php
+
+# 1.
+dn: cn=config
+changetype: modify
+replace: olcLogLevel
+olcLogLevel: stats
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcAccess
+olcAccess: to attrs=userPassword,shadowLastChange
+  by anonymous auth
+  by * none
+-
+# 2.2.2.
+add: olcAccess
+olcAccess: to dn.subtree="ou=krb5,{{ openldap_dc }}"
+  by dn="cn=kadmin,ou=krb5,{{ openldap_dc }}" write
+  by dn="cn=kdc,ou=krb5,{{ openldap_dc }}" read
+  by * none
+-
+# 2.2.3.
+add: olcAccess
+olcAccess: to attrs=loginShell
+  by self write
+  by users read
+  by * none
+-
+# 2.2.4.
+add: olcAccess
+olcAccess: to dn.base=""
+  by * read
+-
+# 2.2.5.
+add: olcAccess
+olcAccess: to *
+  by users read
+  by * none
+-
+# 2.3.
+replace: olcDbIndex
+olcDbIndex: uid eq
+-
+# 2.4.
+add: olcDbIndex
+olcDbIndex: cn eq
+-
+# 2.5.
+add: olcDbIndex
+olcDbIndex: ou eq
+-
+# 2.6.
+add: olcDbIndex
+olcDbIndex: dc eq
+-
+# 2.7.
+add: olcDbIndex
+olcDbIndex: uidNumber eq
+-
+# 2.8.
+add: olcDbIndex
+olcDbIndex: gidNumber eq
+-
+# 2.9.
+add: olcDbIndex
+olcDbIndex: memberUid eq
+-
+# 2.10.
+add: olcDbIndex
+olcDbIndex: uniqueMember eq
+-
+# 2.11.
+add: olcDbIndex
+olcDbIndex: krbPrincipalName eq,pres,sub
+-
+# 2.12.
+add: olcDbIndex
+olcDbIndex: krbPwdPolicyReference eq

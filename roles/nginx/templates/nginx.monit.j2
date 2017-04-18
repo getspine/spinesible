@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+
+check process nginx matching "nginx: master process"
+{% if ansible_lsb.major_release == '6' %}
+  start program = "/etc/init.d/nginx start"
+  stop program  = "/etc/init.d/nginx stop"
+{% else %}
+  start program = "/bin/systemctl start nginx.service"
+  stop program = "/bin/systemctl stop nginx.service"
+{% endif %}

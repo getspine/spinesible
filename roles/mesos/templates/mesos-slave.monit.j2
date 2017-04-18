@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# Ensures that daemon running the Mesos slave process is monitored.
+
+check process mesos-slave matching /usr/sbin/mesos-slave
+  if failed host {{ mesos_ip }} port {{ mesos_slave_port }} type tcp for {{ mesos_failure_cycles_before_restart }} cycles then restart
+  start program = "/bin/systemctl start mesos-slave.service"
+  stop program = "/bin/systemctl stop mesos-slave.service"

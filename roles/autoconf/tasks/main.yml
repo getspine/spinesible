@@ -1,0 +1,45 @@
+---
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat"
+  tags:
+    - autoconf
+
+- name: Download autoconf release tarball
+  get_url:
+    url: "{{ autoconf_gnu_mirror_base }}/autoconf/autoconf-{{ autoconf_version }}.tar.gz"
+    dest: "{{ autoconf_source_dir }}/autoconf-{{ autoconf_version }}.tar.gz"
+  register: autoconf_download
+  tags:
+    - autoconf
+
+- name: Untar autoconf tarball
+  command: "tar xvf autoconf-{{ autoconf_version }}.tar.gz"
+  args:
+    chdir: "{{ autoconf_source_dir }}"
+  when: autoconf_download.changed
+  tags:
+    - autoconf
+
+- name: Configure autoconf build
+  command: "./configure --prefix={{ autoconf_install_dir }}"
+  args:
+    chdir: "{{ autoconf_source_dir }}/autoconf-{{ autoconf_version }}"
+  when: autoconf_download.changed
+  tags:
+    - autoconf
+
+- name: Build autoconf
+  command: make
+  args:
+    chdir: "{{ autoconf_source_dir }}/autoconf-{{ autoconf_version }}"
+  when: autoconf_download.changed
+  tags:
+    - autoconf
+
+- name: Install autoconf
+  command: "paco -lp autoconf-{{ autoconf_version }} -- make install"
+  args:
+    chdir: "{{ autoconf_source_dir }}/autoconf-{{ autoconf_version }}"
+  when: autoconf_download.changed
+  tags:
+    - autoconf

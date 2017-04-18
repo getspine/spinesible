@@ -1,0 +1,14 @@
+---
+- name: Ensure that Pip is installed
+  yum:
+    name: python2-pip
+    state: installed
+  tags:
+    - awscli
+
+- name: Ensure that the AWS CLI is installed
+  pip:
+    name: awscli
+    state: latest
+  tags:
+    - awscli

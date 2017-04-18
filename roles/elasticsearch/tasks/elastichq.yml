@@ -1,0 +1,33 @@
+---
+- name: Check if ElasticHQ monitoring plugin has been installed
+  stat:
+    path: "{{ elasticsearch_plugin_dir }}/hq"
+  register: elastichq_plugin_dir
+  tags:
+    - elasticsearch_hq
+
+- name: Remove old ElasticHQ monitoring plugin
+  shell: "/usr/share/elasticsearch/bin/elasticsearch-plugin remove hq"
+  become: true
+  become_method: sudo
+  ignore_errors: true
+  tags:
+    - elasticsearch_hq
+
+- name: Install ElasticHQ monitoring plugin
+  shell: "/usr/share/elasticsearch/bin/elasticsearch-plugin -install royrusso/elasticsearch-HQ"
+  args:
+    chdir: "{{ elasticsearch_home_dir }}"
+  when: not elastichq_plugin_dir.stat.exists
+  tags:
+    - elasticsearch_hq
+
+- name: Ensure that all plugin contents are properly owned
+  file:
+    path: "{{ elasticsearch_plugin_dir }}"
+    state: directory
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    recurse: yes
+  tags:
+    - elasticsearch_hq

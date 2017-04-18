@@ -1,0 +1,9 @@
+---
+ruby_version: "2.4.1"
+
+ruby_archive: "https://cache.ruby-lang.org/pub/ruby/{{ ruby_version | ruby_major_version }}/ruby-{{ ruby_version }}.tar.gz"
+
+ruby_source_dir: /usr/src
+ruby_install_dir: /usr
+
+ruby_configure_options: --enable-shared

@@ -1,0 +1,63 @@
+---
+- name: Ensure SSL ownership groups exist
+  group:
+    name: "ssl-{{ item }}"
+    state: present
+  with_items: "{{ ssl_certs_to_include }}"
+  tags:
+    - ssl_certs
+    - ssl_certs_deploy
+    - ssl_certs_deploy_certs
+    - ssl_certs_deploy_ownership
+
+- name: Copy requested SSL CA certs
+  copy:
+    content: "{{ vault_ssl_ca_certs[item] }}"
+    dest: "/etc/pki/tls/certs/{{ item }}.ca.crt"
+    owner: root
+    group: "ssl-{{ item }}"
+    mode: 0444
+  with_items: "{{ ssl_ca_certs_to_include }}"
+  tags:
+    - ssl_certs
+    - ssl_certs_deploy
+    - ssl_certs_deploy_certs
+
+- name: Copy requested SSL certs
+  copy:
+    content: "{{ vault_ssl_certs[item] }}"
+    dest: "/etc/pki/tls/certs/{{ item }}.crt"
+    owner: root
+    group: "ssl-{{ item }}"
+    mode: 0444
+  with_items: "{{ ssl_certs_to_include }}"
+  tags:
+    - ssl_certs
+    - ssl_certs_deploy
+    - ssl_certs_deploy_certs
+
+- name: Copy requested SSL cert bundles
+  copy:
+    content: "{{ vault_ssl_cert_bundles[item] }}"
+    dest: "/etc/pki/tls/certs/{{ item }}.bundle.crt"
+    owner: root
+    group: "ssl-{{ item }}"
+    mode: 0444
+  with_items: "{{ ssl_cert_bundles_to_include }}"
+  tags:
+    - ssl_certs
+    - ssl_certs_deploy
+    - ssl_certs_deploy_certs
+
+- name: Copy requested SSL keys
+  copy:
+    content: "{{ vault_ssl_keys[item] }}"
+    dest: "/etc/pki/tls/private/{{ item }}.key"
+    owner: root
+    group: "ssl-{{ item }}"
+    mode: 0440
+  with_items: "{{ ssl_keys_to_include }}"
+  tags:
+    - ssl_certs
+    - ssl_certs_deploy
+    - ssl_certs_deploy_keys

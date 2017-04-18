@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# Ensures that an Elasticsearch cluster node is running.
+
+check process elasticsearch with pidfile /var/run/elasticsearch/elasticsearch.pid
+  start program = "/bin/systemctl start elasticsearch.service"
+  stop program = "/bin/systemctl stop elasticsearch.service"
+  if failed url http://0.0.0.0:9200/ with timeout 15 seconds for 10 cycles then restart

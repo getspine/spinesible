@@ -1,0 +1,33 @@
+---
+- name: Ensure HBase zone exists
+  local_action:
+    module: route53_zone
+    zone: "{{ hbase_site }}.{{ hbase_master_route53_zone }}"
+    state: present
+    vpc_id: "{{ hbase_master_route53_vpc_id }}"
+    vpc_region: "{{ hbase_master_ec2_region }}"
+    comment: "Zone for HBase cluster: {{ hbase_site }}"
+  become: no
+  run_once: yes
+  tags:
+    - hbase
+    - hbase_config
+    - hbase_dns
+
+- name: Update DNS RR record tracking HBase masters
+  local_action:
+    module: route53
+    command: create
+    zone: "{{ hbase_site }}.{{ hbase_master_route53_zone }}"
+    private_zone: yes
+    vpc_id: "{{ hbase_master_route53_vpc_id }}"
+    record: "master.{{ hbase_site }}.{{ hbase_master_route53_zone }}"
+    type: A
+    ttl: 30
+    value: "{{ hbase_master_host }}"
+  become: no
+  run_once: yes
+  tags:
+    - hbase
+    - hbase_config
+    - hbase_dns

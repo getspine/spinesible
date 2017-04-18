@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+[confluent-{{ confluent_version }}]
+name=Confluent repository for {{ confluent_version }}.x packages
+baseurl=https://packages.confluent.io/rpm/{{ confluent_version }}
+gpgcheck=1
+gpgkey=https://packages.confluent.io/rpm/{{ confluent_version }}/archive.key
+enabled=1

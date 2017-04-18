@@ -1,0 +1,78 @@
+---
+authorized_keys:
+  - "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+bootstrap_should_set_hostname: yes
+bootstrap_should_create_base_user: no
+bootstrap_should_format_volumes: no
+
+# firewalld is disabled as hosts use EC2 Security Groups instead.
+bootstrap_disable_firewalld: yes
+
+bootstrap_clocksource: tsc
+
+bootstrap_packages:
+  - bind-utils
+  - collectd
+  - cyrus-sasl
+  - cyrus-sasl-gssapi
+  - cyrus-sasl-ldap
+  - fail2ban
+  - ferm
+  - htop
+  - iftop
+  - ipython
+  - java-1.8.0-openjdk
+  - java-1.8.0-openjdk-devel
+  - libselinux-python
+  - libsodium
+  - libsodium-devel
+  - libyaml
+  - logwatch
+  - lsof
+  - mtr
+  - nc
+  - ncurses-devel
+  - patch
+  - pigz
+  - postfix
+  - python-keyczar
+  - python-pip
+  - screen
+  - strace
+  - tcpdump
+  - vim
+  - wget
+  - yum-axelget
+  - zsh
+
+bootstrap_package_update_excludes: mesos*,hadoop*,openssh*,haproxy
+
+bootstrap_open_ports:
+  - port: 22
+    type: tcp
+  - port: 80
+    type: tcp
+  - port: 443
+    type: tcp
+  - port: 2181
+    type: tcp
+  - port: 5050
+    type: tcp
+  - port: 5051
+    type: tcp
+  - port: 9200
+    type: tcp
+  - port: 9201
+    type: tcp
+  - port: 9300
+    type: tcp
+
+base_group: ansibler
+base_user: ansibler
+
+logwatch_email: root@localhost
+
+sshd_port: 22
+
+zsh_theme: candy

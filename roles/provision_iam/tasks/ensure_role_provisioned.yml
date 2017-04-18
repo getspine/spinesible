@@ -1,0 +1,16 @@
+---
+- name: Create IAM role
+  iam_role:
+    name: "{{ cur_iam_role.name }}"
+    state: present
+    assume_role_policy_document: "{{ lookup('template', cur_iam_role.trust_policy) }}"
+  register: cur_iam_role_response
+
+- debug:
+    var: cur_iam_role_response
+
+- name: "Ensure that all policies are attached: {{ cur_iam_role.policies | join(',') }}"
+  include: attach_iam_policy_role.yml
+  with_items: "{{ cur_iam_role.policies }}"
+  loop_control:
+    loop_var: cur_iam_role_policy_name

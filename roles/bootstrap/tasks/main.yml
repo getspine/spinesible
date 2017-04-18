@@ -1,0 +1,232 @@
+---
+- name: Set hostname (if requested)
+  hostname:
+    name: "{{ bootstrap_hostname }}"
+  when: bootstrap_should_set_hostname
+  tags:
+    - bootstrap
+    - set_hostname
+    - system_update
+
+- name: Set hostname in /etc/sysconfig/network (if requested)
+  template:
+    src: network.j2
+    dest: /etc/sysconfig/network
+  when: bootstrap_should_set_hostname
+  tags:
+    - bootstrap
+    - set_hostname
+    - system_update
+
+- name: Set hostname permanently with hostnamectl too (if requested)
+  command: "hostnamectl set-hostname --static {{ bootstrap_hostname }}"
+  when: bootstrap_should_set_hostname
+  tags:
+    - bootstrap
+    - set_hostname
+    - system_update
+
+- name: Tell cloud-init to not override the hostname (if requested)
+  lineinfile:
+    dest: /etc/cloud/cloud.cfg
+    regexp: "^preserve_hostname"
+    line: "preserve_hostname: true"
+  when: bootstrap_should_set_hostname
+  tags:
+    - bootstrap
+    - set_hostname
+    - system_update
+
+- name: Create initial user's group
+  group:
+    name: "{{ base_group }}"
+    state: present
+  when: bootstrap_should_create_base_user
+  tags:
+    - bootstrap
+
+- name: Create initial user
+  user:
+    name: "{{ base_user }}"
+    group: "{{ base_group }}"
+    password: "{{ lookup('password', '/tmp/passwordfile chars=ascii_letters') }}"
+    shell: /bin/zsh
+  when: bootstrap_should_create_base_user
+  tags:
+    - bootstrap
+
+- name: Create initial user's .ssh directory
+  file:
+    path: "/home/{{ base_user }}/.ssh"
+    owner: "{{ base_user }}"
+    group: "{{ base_user }}"
+    mode: 0700
+    state: directory
+  when: bootstrap_should_create_base_user
+  tags:
+    - bootstrap
+
+- name: Add initial user's authorized keys
+  authorized_key:
+    user: "{{ base_user }}"
+    key: "{{ item }}"
+    state: present
+  with_items: "{{ authorized_keys }}"
+  tags:
+    - bootstrap
+    - ssh_keys
+
+- name: Set needs_bootstrap EC2 tag to False
+  local_action:
+    module: ec2_tag
+    resource: "{{ ec2_id }}"
+    region: "{{ spine_datacenter }}"
+    profile: "{{ spine_datacenter }}"
+    tags:
+      needs_bootstrap: False
+  become: no
+  tags:
+    - bootstrap
+
+- name: Make SSHD configuration sane
+  template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: 0600
+  notify:
+    - Restart sshd
+  tags:
+    - bootstrap
+    - sshd_config
+
+- name: Clone oh-my-zsh repo for initial user
+  become: true
+  become_method: sudo
+  become_user: "{{ base_user }}"
+  git:
+    repo: https://github.com/robbyrussell/oh-my-zsh.git
+    dest: "/home/{{ base_user }}/.oh-my-zsh"
+    version: master
+  when: bootstrap_should_create_base_user
+  tags:
+    - bootstrap
+
+- name: Deploy .zshrc for oh-my-zsh
+  template:
+    src: zshrc.j2
+    dest: "/home/{{ base_user }}/.zshrc"
+    owner: "{{ base_user }}"
+    group: "{{ base_group }}"
+  when: bootstrap_should_create_base_user
+  tags:
+    - bootstrap
+
+- name: Configure sudoers to allow for sudoable user
+  lineinfile:
+    dest: /etc/sudoers
+    backup: yes
+    state: present
+    regexp: "^%{{ base_user }}"
+    insertafter: "^# %wheel"
+    line: "%{{ base_user }} ALL=(ALL) NOPASSWD: ALL"
+  when: bootstrap_should_create_base_user
+  tags:
+    - bootstrap
+
+- name: Configure sudoers to allow for non-tty sudo
+  lineinfile:
+    dest: /etc/sudoers
+    backup: yes
+    state: absent
+    regexp: "^Defaults.*requiretty"
+  when: bootstrap_should_create_base_user
+  tags:
+    - bootstrap
+
+- name: Format volumes (if requested)
+  filesystem:
+    fstype: ext4
+    force: yes
+    dev: "{{ item }}"
+  when: bootstrap_should_format_volumes
+  with_items: "{{ bootstrap_volumes_to_format.split(',') }}"
+  tags:
+    - bootstrap
+
+- name: Install bootstrap packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ bootstrap_packages }}"
+  ignore_errors: yes
+  retries: 12
+  delay: 10
+  tags:
+    - bootstrap
+
+- name: Ensure that all packages are up2date
+  yum:
+    name: "*"
+    state: latest
+    exclude: "{{ bootstrap_package_update_excludes }}"
+  ignore_errors: yes
+  retries: 12
+  delay: 10
+  tags:
+    - bootstrap
+    - system_update
+
+- name: Add sshd monit config
+  template:
+    src: sshd.monit.j2
+    dest: /etc/monit.d/sshd.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Reload Monit
+  tags:
+    - bootstrap
+
+- include: disable_services.yml
+  tags:
+    - bootstrap
+    - bootstrap_disable_services
+
+- name: Make the default screenrc suck less
+  template:
+    src: screenrc.j2
+    dest: /etc/screenrc
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - bootstrap
+
+- name: Establish MOTD
+  template:
+    src: motd.j2
+    dest: /etc/motd
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - bootstrap
+
+- name: Ensure that the tsc clocksource is used over the Xen clocksource
+  shell: "echo {{ bootstrap_clocksource }} > /sys/devices/system/clocksource/clocksource0/current_clocksource"
+  tags:
+    - bootstrap
+    - clocksource
+
+- name: Ensure that firewalld is stopped
+  service:
+    name: firewalld
+    state: stopped
+    enabled: no
+  when: bootstrap_disable_firewalld
+  tags:
+    - bootstrap
+    - firewalld_stop

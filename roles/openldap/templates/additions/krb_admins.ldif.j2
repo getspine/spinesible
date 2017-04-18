@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+# Adds Kerberos admin users.
+
+dn: ou=krb5,{{ openldap_dc }}
+ou: krb5
+objectClass: organizationalUnit
+
+dn: cn=kdc,ou=krb5,{{ openldap_dc }}
+cn: kdc
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+description: Default bind DN for the Kerberos KDC server
+userPassword: {{ openldap_kdc_user_password }}
+
+dn: cn=kadmin,ou=krb5,{{ openldap_dc }}
+cn: kadmin
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+description: Default bind DN for the Kerberos Administration server
+userPassword: {{ openldap_kdc_user_password }}

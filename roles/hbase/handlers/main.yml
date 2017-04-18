@@ -1,0 +1,6 @@
+---
+- name: Reload iptables configuration
+  command: firewall-cmd --reload
+  tags:
+    - hbase
+    - hbase_firewall

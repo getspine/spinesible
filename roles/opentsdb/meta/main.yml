@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  author: Steve Salevan <steve@spi.ne>
+  description: Establishes an OpenTSDB metrics server
+  license: MIT
+  min_ansible_version: 1.6
+  categories:
+    - system

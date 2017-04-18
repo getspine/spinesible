@@ -1,0 +1,43 @@
+#!/bin/bash
+# Restores an OpenLDAP backup from S3.
+
+set -ueo pipefail
+
+if [ $# -lt 1 ]; then
+  echo
+  echo "Restores an OpenLDAP backup from S3."
+  echo "Usage: kdc_restore_from_s3 TIMESTAMP"
+  exit 1
+fi
+
+TIMESTAMP="${1}"
+S3_BUCKET='{{ openldap_backups_s3_bucket }}'
+KMS_KEY='{{ openldap_backups_kms_key }}'
+
+echo " - Restoring OpenLDAP backup: ${TIMESTAMP}"
+logger "Restoring OpenLDAP backup: ${TIMESTAMP}"
+
+aws s3 cp --sse aws:kms --sse-kms-key-id ${KMS_KEY} "s3://${S3_BUCKET}/backups/openldap/ldap-slapd.d-${TIMESTAMP}.tar.gz" "/tmp/ldap-slapd.d-${TIMESTAMP}.tar.gz"
+aws s3 cp --sse aws:kms --sse-kms-key-id ${KMS_KEY} "s3://${S3_BUCKET}/backups/openldap/ldap-database-${TIMESTAMP}.ldif" "/tmp/ldap-database-${TIMESTAMP}.ldif"
+
+mv /etc/openldap/slapd.d /etc/openldap/slapd.d-bak-${TIMESTAMP} || true
+
+echo " - Restoring OpenLDAP slapd.d..."
+cd /
+tar xvzf /tmp/ldap-slapd.d-${TIMESTAMP}.tar.gz
+
+echo " - Restarting slapd..."
+systemctl restart slapd.service
+
+echo " - Waiting 10 seconds..."
+sleep 10
+
+echo " - Restoring OpenLDAP DB..."
+slapadd -c -l /tmp/ldap-database-${TIMESTAMP}.ldif
+
+echo " - Cleaning up..."
+rm -rf /tmp/ldap-slapd.d-${TIMESTAMP}.tar.gz
+rm -rf /tmp/ldap-database-${TIMESTAMP}.ldif
+
+echo " - OpenLDAP restore succeeded: ${TIMESTAMP}"
+logger "OpenLDAP restore succeeded: ${TIMESTAMP}"

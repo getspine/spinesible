@@ -1,0 +1,94 @@
+---
+- name: Copy over the Kerberos LDAP service password file (if LDAP integration enabled)
+  copy:
+    content: "{{ krb_ldap_service_password }}"
+    dest: "/var/kerberos/krb5kdc/{{ kdc_realm_name | upper() }}.ldap_service_pw"
+    owner: root
+    group: root
+    mode: 0600
+  when: krb_enable_ldap
+  tags:
+    - kerberos
+    - kerberos_server
+    - kerberos_ldap
+
+- name: Install needed Kerberos packages
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ krb_pkg }}"
+  tags:
+    - kerberos
+    - kerberos_server
+
+- name: Copy KDC configuration file
+  template:
+    src: kdc.conf.j2
+    dest: "{{ kdc_conf_path }}"
+    mode: 0600
+  notify:
+   - Restart Kerberos server
+  tags:
+    - kerberos
+    - kerberos_server
+
+- name: Copy KDC ACL configuration file
+  template:
+    src: kadm5.acl.j2
+    dest: "{{ kadm5_acl_path }}"
+    mode: 0600
+  notify:
+   - Restart Kerberos server
+  tags:
+    - kerberos
+    - kerberos_server
+
+- name: Check that the kerberos db has been created
+  stat:
+    path: "{{ krb_db_created_file }}"
+  register: krb_db_created
+  tags:
+    - kerberos
+    - kerberos_server
+
+- name: Blow away kerberos database
+  # the find trick safely deletes an empty file if you set the krb_db to something dumb like /
+  shell: kdb5_util -r "{{ kdc_realm_name }}" destroy -f && find "{{ krb_db_created_file }}" -type f -size 0 | xargs rm -f
+  when: krb_force_recreate_database
+  ignore_errors: true
+  tags:
+    - kerberos
+    - kerberos_server
+
+- name: Create initial Kerberos database
+  shell: kdb5_util -P "{{ kdc_master_db_pass }}" create -s && touch "{{ krb_db_created_file }}"
+  args:
+    creates: "{{ krb_db_created_file }}"
+  when: kdc_master_db_pass != 'CHANGME'
+  register: create_initial_kdb
+  tags:
+    - kerberos
+    - kerberos_server
+
+- debug:
+    msg: "Initial Kerberos database not created! Please set kdc_master_db_pass."
+  when: create_initial_kdb | skipped
+
+- name: Start Kerberos services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items: "{{ krb_service }}"
+  tags:
+    - kerberos
+    - kerberos_server
+
+- name: Create an admin for administering Kerberos server
+  shell: kadmin.local -q "addprinc -pw {{ kadmin_pass }} {{ kadmin_user }}/admin"
+  when: create_kadmin_user
+  tags:
+    - kerberos
+    - kerberos_server
+
+- include: monit.yml

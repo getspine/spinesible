@@ -1,0 +1,209 @@
+---
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat"
+  tags:
+    - elasticsearch
+
+- name: Ensure that Elasticsearch group is created
+  group:
+    name: "{{ elasticsearch_group }}"
+  tags:
+    - elasticsearch
+
+- name: Ensure that Elasticsearch user is created
+  user:
+    name: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+  tags:
+    - elasticsearch
+
+- name: Ensure that Elasticsearch directories are created and properly owned
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    recurse: yes
+  with_items:
+    - "{{ elasticsearch_conf_dir }}"
+    - "{{ elasticsearch_log_dir }}"
+    - "{{ elasticsearch_work_dir }}"
+    - "{{ elasticsearch_plugin_dir }}"
+  tags:
+    - elasticsearch
+
+- name: Ensure that all instance store mount points are created (if a datanode)
+  file:
+    path: "{{ item.mount_dir }}"
+    state: directory
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    recurse: yes
+  with_items: "{{ elasticsearch_data_volumes }}"
+  tags:
+    - elasticsearch
+
+- name: Format instance store volume, if data node
+  filesystem:
+    fstype: ext4
+    dev: "{{ item.volume }}"
+  when: elasticsearch_should_format_volumes and elasticsearch_node_data
+  with_items: "{{ elasticsearch_data_volumes }}"
+  tags:
+    - elasticsearch
+
+- name: Mount all instance store volumes as Elasticsearch data directories (if a datanode)
+  mount:
+    name: "{{ item.mount_dir }}"
+    src: "{{ item.volume }}"
+    fstype: ext4
+    state: present
+  when: elasticsearch_node_data
+  with_items: "{{ elasticsearch_data_volumes }}"
+  tags:
+    - elasticsearch
+
+- name: Run mount -a to ensure that all disks are mounted (if a datanode)
+  command: mount -a
+  when: elasticsearch_node_data
+  tags:
+    - elasticsearch
+
+- name: Undeuce the instance store permissions
+  file:
+    path: "{{ item.mount_dir }}"
+    state: directory
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    recurse: yes
+  with_items: "{{ elasticsearch_data_volumes }}"
+  tags:
+    - elasticsearch
+
+- name: Install Elasticsearch AWS plugin
+  include: aws.yml
+  when: elasticsearch_install_aws_plugin
+  tags:
+    - elasticsearch
+
+- name: Configure Elasticsearch
+  template:
+    src: elasticsearch.yml.j2
+    dest: "{{ elasticsearch_conf_dir }}/elasticsearch.yml"
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    mode: 0644
+  when: elasticsearch_conf_dir is defined
+  notify: Restart Elasticsearch
+  tags:
+    - elasticsearch
+    - elasticsearch_config
+
+- name: Configure Elasticsearch jvm options
+  template:
+    src: jvm.options.j2
+    dest: "{{ elasticsearch_conf_dir }}/jvm.options"
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    mode: 0644
+  when: elasticsearch_conf_dir is defined
+  notify: Restart Elasticsearch
+  tags:
+    - elasticsearch
+    - elasticsearch_config
+
+- name: Write an Elasticsearch shell utility
+  template:
+    src: es-shell.py.j2
+    dest: /usr/bin/es-shell
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - elasticsearch
+    - elasticsearch_shell
+
+- name: Write an Elasticsearch sysconfig
+  template:
+    src: sysconfig.j2
+    dest: /etc/sysconfig/elasticsearch
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    mode: 0644
+  notify: Restart Elasticsearch
+  tags:
+    - elasticsearch
+    - elasticsearch_config
+
+- name: Write an Elasticsearch /etc/security/limits.conf for ulimit
+  template:
+    src: limits.conf.j2
+    dest: /etc/security/limits.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart Elasticsearch
+  tags:
+    - elasticsearch
+    - elasticsearch_config
+
+- name: Ensure that the Elasticsearch service is running
+  service:
+    name: elasticsearch
+    state: started
+    enabled: yes
+  tags:
+    - elasticsearch
+
+- name: Write an Elasticsearch monit configuration
+  template:
+    src: elasticsearch.monit.j2
+    dest: /etc/monit.d/elasticsearch
+  register: elasticsearch_monit
+  notify:
+    - Reload Monit
+  tags:
+    - elasticsearch
+    - elasticsearch_config
+
+- name: Ensure that Monit is loaded with latest configuration
+  service:
+    name: monit
+    state: reloaded
+  when: elasticsearch_monit.changed
+  tags:
+    - elasticsearch
+
+- name: Wait for Monit to get its act together
+  pause:
+    seconds: 90
+  when: elasticsearch_monit.changed
+  tags:
+    - elasticsearch
+
+- name: Ensure that Elasticsearch is monitored by Monit
+  monit:
+    name: elasticsearch
+    state: monitored
+  when: elasticsearch_monit.changed
+  tags:
+    - elasticsearch
+
+- include: elastichq.yml
+  when: elasticsearch_install_elastichq_plugin
+  tags:
+    - elasticsearch
+
+- include: marvel.yml
+  when: elasticsearch_install_marvel_plugin
+  tags:
+    - elasticsearch
+
+- name: Wait for Elasticsearch to come back up
+  wait_for:
+    port: 9200
+    delay: 20
+  tags:
+    - elasticsearch
+    - elasticsearch_aws
+    - elasticsearch_hq

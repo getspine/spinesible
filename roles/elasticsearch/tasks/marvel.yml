@@ -1,0 +1,19 @@
+---
+- name: Check if Elasticsearch Marvel monitoring plugin has been installed
+  stat:
+    path: "{{ elasticsearch_plugin_dir }}/marvel"
+  register: marvel_plugin_dir
+
+- name: Install Marvel monitoring plugin
+  shell: bin/elasticsearch-plugin install elasticsearch/marvel/{{ elasticsearch_plugin_marvel_version }}
+  args:
+    chdir: "{{ elasticsearch_home_dir }}"
+  when: not marvel_plugin_dir.stat.exists
+
+- name: Ensure that all plugin contents are properly owned
+  file:
+    path: "{{ elasticsearch_plugin_dir }}"
+    state: directory
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    recurse: yes

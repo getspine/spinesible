@@ -1,0 +1,5 @@
+---
+- name: Restart Aurora scheduler
+  service:
+    name: aurora-scheduler
+    state: restarted

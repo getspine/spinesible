@@ -1,0 +1,50 @@
+---
+- include: Debian.yml
+  when: ansible_os_family == "Debian"
+  tags:
+    - thrift
+
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat"
+  tags:
+    - thrift
+
+- name: Download Thrift release tarball
+  get_url:
+    url: "{{ thrift_apache_mirror_base }}/thrift/{{ thrift_version }}/thrift-{{ thrift_version }}.tar.gz"
+    dest: "{{ thrift_source_dir }}/thrift-{{ thrift_version }}.tar.gz"
+  register: thrift_download
+  tags:
+    - thrift
+
+- name: Untar Thrift release tarball
+  command: "tar xzf {{ thrift_source_dir }}/thrift-{{ thrift_version }}.tar.gz"
+  args:
+    chdir: "{{ thrift_source_dir }}"
+  when: thrift_download.changed
+  tags:
+    - thrift
+
+- name: Configure Thrift build
+  command: "./configure --prefix='{{ thrift_install_dir }}' --with-lua=no"
+  args:
+    chdir: "{{ thrift_source_dir }}/thrift-{{ thrift_version }}"
+  when: thrift_download.changed
+  tags:
+    - thrift
+
+- name: Build Thrift
+  command: make
+  args:
+    chdir: "{{ thrift_source_dir }}/thrift-{{ thrift_version }}"
+  when: thrift_download.changed
+  tags:
+    - thrift
+
+- name: Install Thrift
+  command: make install
+  args:
+    chdir: "{{ thrift_source_dir }}/thrift-{{ thrift_version }}"
+  when: thrift_download.changed
+  tags:
+   - thrift

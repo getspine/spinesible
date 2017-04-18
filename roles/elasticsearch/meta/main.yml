@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  author: Steve Salevan <steve@spi.ne>
+  description: Installs and configures an Elasticsearch 5 cluster
+  license: MIT
+  min_ansible_version: 1.7
+
+dependencies:
+  - lsb

@@ -1,0 +1,26 @@
+---
+- name: Add stunnel SSL certificate
+  copy:
+    content: "{{ stunnel_cert_content }}"
+    dest: "{{ stunnel_cert }}"
+    owner: "{{ stunnel_user }}"
+    group: "{{ stunnel_group }}"
+    mode: 0600
+  when: stunnel_cert_file is defined and stunnel_cert_content is defined
+  notify:
+    - Restart stunnel
+  tags:
+    - stunnel
+
+- name: Add stunnel CA chain certificate (optional)
+  copy:
+    content: "{{ stunnel_cert_content }}"
+    dest: "{{ stunnel_ca_file }}"
+    owner: "{{ stunnel_user }}"
+    group: "{{ stunnel_group }}"
+    mode: 0600
+  when: stunnel_ca_file is defined and stunnel_ca_content is defined
+  notify:
+    - Restart stunnel
+  tags:
+    - stunnel

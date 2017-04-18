@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+
+{% for authorized_key in authorized_keys %}
+{{ authorized_key }}
+{% endfor %}

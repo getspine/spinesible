@@ -1,0 +1,34 @@
+---
+- name: Install the Mock package
+  yum:
+    name: mock
+    state: latest
+  tags:
+    - mock
+
+- name: "Add base user '{{ mock_base_user }}' to the mock group"
+  user:
+    name: "{{ mock_base_user }}"
+    groups: mock
+    system: yes
+  tags:
+    - mock
+
+- name: "Add all delegated users to the mock group: {{ mock_users | join(', ') }}"
+  user:
+    name: "{{ item }}"
+    groups: mock
+    append: yes
+  with_items: "{{ mock_users }}"
+  tags:
+    - mock
+
+- name: "Initialize Mock repository for config: {{ mock_config }}"
+  command: '/usr/bin/mock -r "{{ mock_config }}" --init'
+  args:
+    creates: "/var/lib/mock/{{ mock_config }}/root"
+  when: mock_config
+  become: yes
+  become_user: "{{ mock_base_user }}"
+  tags:
+    - mock

@@ -1,0 +1,27 @@
+---
+- name: Ensure that bind is installed
+  yum:
+    pkg: "{{ item }}"
+    state: latest
+  with_items:
+    - bind
+    - bind-utils
+  tags:
+    - route53_forwarder
+
+- name: Write a named configuration
+  template:
+    src: named.conf.j2
+    dest: /etc/named.conf
+  notify:
+    - Restart named
+  tags:
+    - route53_forwarder
+
+- name: Ensure that named is running
+  service:
+    name: named
+    state: started
+    enabled: yes
+  tags:
+    - route53_forwarder

@@ -1,0 +1,5 @@
+---
+#vars file for kerberos_client
+krb_client_pkgs:
+  - krb5-workstation
+  - pam_krb5

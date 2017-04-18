@@ -1,0 +1,41 @@
+# {{ ansible_managed }}
+# Establishes base ACL for domain: {{ openldap_dc }}
+
+dn: olcDatabase={1}monitor,cn=config
+changetype: modify
+replace: olcAccess
+olcAccess: {0}to
+  * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth"
+  read by dn.base="cn={{ openldap_root_user }},{{ openldap_dc }}"
+  read by * none
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcSuffix
+olcSuffix: {{ openldap_dc }}
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcRootDN
+olcRootDN: cn={{ openldap_root_user }},{{ openldap_dc }}
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+add: olcRootPW
+olcRootPW: {{ hashed_openldap_root_password.stdout }}
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+add: olcAccess
+olcAccess: {0}to
+  attrs=userPassword,shadowLastChange by dn="cn={{ openldap_root_user }},{{ openldap_dc }}"
+  write by anonymous
+  auth by self
+  write by *
+  none
+olcAccess: {1}to 
+  dn.base="" by * read
+olcAccess: {2}to
+  * by dn="cn={{ openldap_root_user }},{{ openldap_dc }}"
+  write by *
+  read

@@ -1,0 +1,48 @@
+---
+- name: Ensure all nodes in the DC are bootstrapped
+  hosts: tag_needs_bootstrap_True
+  remote_user: centos
+  become: yes
+  become_method: sudo
+  gather_facts: no
+
+  vars_files:
+    - "dc_config/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+    - "dc_vars/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+
+  vars:
+    ansible_group: "{{ ec2_tag_ansible_group }}"
+    bootstrap_hostname: "{{ ec2_tag_hostname }}"
+    spine_section_name: "{{ ec2_tag_spine_section }}"
+    spine_section: "{{ spine_sections[spine_section_name] }}"
+    cur_role: "{{ spine_section.roles[ec2_tag_ansible_group] }}"
+    bootstrap_should_set_hostname: "{{ cur_role['bootstrap_should_set_hostname'] | default(True) }}"
+    bootstrap_should_create_base_user: "{{ cur_role['ec2_create_base_user'] | default(True) }}"
+    bootstrap_should_format_volumes: "{{ cur_role['ec2_bootstrap_should_format_volumes'] | default(False) }}"
+    bootstrap_volumes_to_format: "{{ cur_role['ec2_format_volumes'] | default('') }}"
+    ntp_force_time_sync: yes
+
+  pre_tasks:
+    - name: Disable requiretty in /etc/sudoers because many images enable it by default
+      lineinfile:
+        dest: /etc/sudoers
+        regexp: ^Defaults.*requiretty
+        state: absent
+      become: true
+      become_method: sudo
+      vars:
+        ansible_ssh_pipelining: no
+    - name: Run the setup module to ensure that all hostvars are properly loaded
+      setup:
+
+  roles:
+    - bootstrap
+
+- name: Reboot freshly-bootstrapped nodes
+  hosts: tag_needs_bootstrap_True
+  remote_user: ansibler
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - reboot

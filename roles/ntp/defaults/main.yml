@@ -1,0 +1,17 @@
+---
+ntp_enabled: yes
+ntp_timezone: Etc/UTC
+ntp_manage_config: yes
+
+ntp_force_time_sync: no
+ntp_time_sync_host: time-c.nist.gov
+
+ntp_packages:
+  - ntp
+  - rdate
+
+ntp_servers:
+ - 0.pool.ntp.org iburst
+ - 1.pool.ntp.org iburst
+ - 2.pool.ntp.org iburst
+ - 3.pool.ntp.org iburst

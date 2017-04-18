@@ -1,0 +1,60 @@
+---
+kafka_roles:
+  - client
+  - server
+
+kafka_version: 0.10.1.0
+kafka_scala_version: 2.11
+
+kafka_apache_mirror: http://mirror.cogentco.com/pub/apache
+
+kafka_dir: /usr/lib/kafka
+kafka_config_dir: /etc/kafka
+kafka_data_dir: /var/lib/kafka
+kafka_log_dir: /var/log/kafka
+
+kafka_user: kafka
+kafka_group: kafka
+
+kafka_log_level: WARN
+
+kafka_config_files:
+  - log4j.properties
+  - server.properties
+
+kafka_firewall_ports:
+  - port: "{{ kafka_port }}"
+    type: tcp
+
+kafka_hosts: "{{ hostvars | private_ips_with_port(groups[kafka_hosts_group], 9092) | join(',') }}"
+kafka_hosts_group: tag_ansible_group_sdzk
+
+kafka_zookeeper_hosts: "{{ hostvars | private_ips_with_port(groups[kafka_zookeeper_hosts_group], 2181) | join(',') }}"
+kafka_zookeeper_hosts_group: tag_ansible_group_sdzk
+
+kafka_listen_host: "0.0.0.0"
+
+kafka_broker_id: "{{ hostvars | kafka_broker_id(groups[kafka_hosts_group], inventory_hostname) }}"
+
+kafka_auto_create_topics: yes
+kafka_num_network_threads: 2
+kafka_num_io_threads: 2
+kafka_num_partitions: 2
+kafka_port: 9092
+kafka_socket_send_buffer_bytes: 1048576
+kafka_socket_receive_buffer_bytes: 1048576
+kafka_socket_request_max_bytes: 104857600
+kafka_log_flush_interval_messages: 10000
+kafka_log_flush_interval_ms: 1000
+kafka_retention_check_interval_ms: 60000
+kafka_log_retention_bytes: 104857600  #100 M
+kafka_log_retention_hours: 24
+kafka_log_segment_bytes: "{{ kafka_log_retention_bytes }}"
+kafka_log_cleanup_interval_mins: 1
+kafka_heap_opts: "-Xmx1G -Xms1G"
+kafka_ulimit_files: 32768
+kafka_zookeeper_connection_timeout_ms: 1000000
+
+kafka_skip_install: no
+
+kafka_failure_cycles_before_restart: 5

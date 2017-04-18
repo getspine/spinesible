@@ -1,0 +1,36 @@
+---
+- name: Ensure that the packagecloud.io GPG key is installed
+  rpm_key:
+    state: present
+    key: https://packagecloud.io/ssalevan/aurora/gpgkey
+  tags:
+    - thermos
+
+- name: Ensure that the Aurora Yum repository is present
+  template:
+    src: ssalevan_aurora.repo.j2
+    dest: /etc/yum.repos.d/ssalevan_aurora.repo
+    mode: 0644
+  tags:
+    - thermos
+
+- name: Install the Thermos RPM
+  yum:
+    name: aurora-executor
+    state: "{% if thermos_should_upgrade %}latest{% else %}present{% endif %}"
+    update_cache: "{{ thermos_should_upgrade }}"
+    enablerepo: ssalevan_aurora
+  tags:
+    - thermos
+
+- name: Ensure that the Mesos slave process is running
+  service:
+    name: mesos-slave
+    state: "{% if thermos_should_upgrade %}restarted{% else %}started{% endif %}"
+  tags:
+    - thermos
+
+- include: observer.yml
+  when: "'observer' in thermos_roles"
+  tags:
+    - thermos

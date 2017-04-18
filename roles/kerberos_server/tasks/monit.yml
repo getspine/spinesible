@@ -1,0 +1,37 @@
+---
+- name: Setup Monit configuration for kerberos_server
+  template:
+    src: "{{ item }}.monit.j2"
+    dest: "/etc/monit.d/{{ item }}"
+  register: kerberos_monit
+  with_items: "{{ krb_service }}"
+  tags:
+    - kerberos
+    - kerberos_server
+
+- name: Ensure that Monit is reloaded
+  service:
+    name: monit
+    state: reloaded
+  when: kerberos_monit.changed
+  tags:
+    - kerberos
+    - kerberos_server
+
+- name: Wait for Monit to get its act together
+  pause:
+    seconds: 10
+  when: kerberos_monit.changed
+  tags:
+    - kerberos
+    - kerberos_server
+
+- name: Ensure that kerberos is monitored by Monit
+  monit:
+    name: "{{ item }}"
+    state: monitored
+  ignore_errors: yes
+  with_items: "{{ krb_service }}"
+  tags:
+    - kerberos
+    - kerberos_server

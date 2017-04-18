@@ -1,0 +1,9 @@
+---
+daemonize_should_build: false
+
+daemonize_version: 1.7.7
+
+daemonize_rebuild: no
+daemonize_git_repo: https://github.com/bmc/daemonize.git
+daemonize_install_dir: /usr
+daemonize_source_dir: /usr/src

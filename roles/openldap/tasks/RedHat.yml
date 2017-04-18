@@ -1,0 +1,19 @@
+---
+- name: Install OpenLDAP client RPM
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - openldap
+    - openldap-clients
+  tags:
+    - openldap
+
+- name: Install OpenLDAP server RPM
+  yum:
+    name: openldap-servers
+    state: present
+  when: "'server' in openldap_roles"
+  tags:
+    - openldap
+    - openldap_server

@@ -1,0 +1,9 @@
+---
+- name: Install golang from package manager
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ golang_packages }}"
+  tags:
+    - golang
+

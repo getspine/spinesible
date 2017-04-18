@@ -1,0 +1,24 @@
+---
+- name: Add backup utility scripts
+  template:
+    src: "{{ item }}.sh.j2"
+    dest: "/usr/sbin/{{ item }}"
+    owner: ldap
+    mode: 0755
+  with_items:
+    - backup_ldap_to_s3
+    - restore_ldap_from_s3
+  when: openldap_enable_s3_backups
+  tags:
+    - openldap
+    - openldap_backup
+
+- name: Add backup cronjob
+  cron:
+    name: Backup OpenLDAP
+    special_time: daily
+    job: /usr/sbin/backup_ldap_to_s3
+  when: openldap_enable_s3_backups
+  tags:
+    - openldap
+    - openldap_backup

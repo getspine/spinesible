@@ -1,0 +1,4 @@
+---
+dependencies:
+  - role: monit
+  - role: kerberos_client

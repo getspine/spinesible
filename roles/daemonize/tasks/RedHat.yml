@@ -1,0 +1,17 @@
+---
+- name: Ensure that Daemonize build dependencies are present
+  yum:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  when: daemonize_should_build
+  with_items:
+    - gcc
+    - make
+    - paco
+
+- name: Install Daemonize RPM
+  yum:
+    name: daemonize
+    state: present
+  when: not daemonize_should_build

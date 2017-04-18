@@ -1,0 +1,6 @@
+---
+- name: Restart Kafka server
+  service:
+    name: kafka
+    state: restarted
+    enabled: yes

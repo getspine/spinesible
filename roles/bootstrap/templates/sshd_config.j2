@@ -1,0 +1,95 @@
+# {{ ansible_managed }}
+
+# user modified sshd_config
+# See the sshd(8) manpage for details
+
+#### Networking options ####
+Port {{ sshd_port }}
+
+# Restrict to IPv4. inet = IPv4, inet6 = IPv6, any = both 
+AddressFamily inet
+
+# Only use protocol version 2
+Protocol 2
+
+# Disable XForwarding unless you need it
+X11Forwarding no
+
+# Disable TCPKeepAlive and use ClientAliveInterval instead to prevent TCP Spoofing attacks
+TCPKeepAlive no
+ClientAliveInterval 600
+ClientAliveCountMax 3
+
+#### Key Configuration ####
+
+# HostKeys for protocol version 2
+HostKey /etc/ssh/ssh_host_rsa_key
+
+#Privilege Separation is turned on for security
+UsePrivilegeSeparation yes
+
+# Use public key authentication
+PubkeyAuthentication yes
+AuthorizedKeysFile   %h/.ssh/authorized_keys
+
+#### Key Configuration ####
+
+
+#### Authentication ####
+
+# Whitelist allowed users
+AllowUsers {{ base_user }} spine
+
+# one minute to enter your key passphrase
+LoginGraceTime 60
+
+# No root login
+PermitRootLogin no
+
+# Force permissions checks on keyfiles and directories
+StrictModes yes
+
+# Don't read the user's ~/.rhosts and ~/.shosts files
+IgnoreRhosts yes
+
+# similar for protocol version 2
+HostbasedAuthentication no
+
+# Don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
+IgnoreUserKnownHosts yes
+
+# To enable empty passwords, change to yes (NOT RECOMMENDED)
+PermitEmptyPasswords no
+
+# Disable challenge and response auth. Unessisary when using keys
+ChallengeResponseAuthentication no
+
+# Disable the use of passwords completly, only use public/private keys
+PasswordAuthentication no
+
+# Using keys, no need for PAM. Also allows SSHD to be run as a non-root user
+UsePAM yes
+
+# Don't use login(1)
+UseLogin no
+
+#### Authentication ####
+
+
+#### Misc ####
+
+# Logging
+SyslogFacility AUTH
+LogLevel INFO
+
+# Print the last time the user logged in
+PrintLastLog yes
+
+MaxAuthTries 2
+
+MaxStartups 10:30:60
+
+# Allow client to pass locale environment variables
+AcceptEnv LANG LC_*
+
+Subsystem sftp /usr/libexec/openssh/sftp-server

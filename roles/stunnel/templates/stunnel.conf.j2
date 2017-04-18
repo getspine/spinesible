@@ -1,0 +1,43 @@
+;{{ ansible_managed }}
+{% if stunnel_chroot is defined -%}
+chroot = {{ stunnel_chroot }}
+pid = /stunnel4.pid
+{% endif %}
+
+setuid = {{ stunnel_user }}
+setgid = {{ stunnel_group }}
+
+debug = {{ stunnel_debug_level }}
+output = {{ stunnel_log }}
+pid = {{ stunnel_pid }}
+
+cert = {{ stunnel_cert }}
+{% if stunnel_key is defined -%}
+key = {{ stunnel_key }}
+{% endif %}
+
+{% if stunnel_verify_level is defined -%}
+verify = {{ stunnel_verify_level }}
+{% endif %}
+{% if stunnel_ca_file is defined -%}
+CAfile = {{ stunnel_ca_file }}
+{% endif %}
+CRLpath = {{ stunnel_crl_path }}
+{% if stunnel_crl_file is defined -%}
+CRLfile = {{ stunnel_crl_file }}
+{% endif %}
+
+options = {{ stunnel_ssl_options }}
+
+{% for service in stunnel_services -%}
+[{{ service.name }}]
+client = {{ service.client | default('no') }}
+accept = {{ service.accept_host }}:{{ service.accept_port }}
+connect = {{ service.connect_host }}:{{ service.connect_port }}
+{% if service.other_options is defined -%}
+{% for option, value in service.other_options.iteritems() -%}
+{{ option }} = {{ value }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}

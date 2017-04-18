@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+# {{ ansible_managed }}
+# Helper script for establishing and maintaining Amazon S3 backups.
+
+try:
+  import json
+except ImportError:
+  import simplejson as json
+
+import httplib
+import sys
+import urllib
+
+from optparse import OptionParser
+
+
+PARSER = OptionParser(
+    usage='usage: %prog [options] (create_snapshot_config|create_snapshot)')
+PARSER.add_option('-k', '--access_key', dest='access_key', help='An AWS access key',
+    default='')
+PARSER.add_option('-s', '--secret_key', dest='secret_key', help='An AWS secret key',
+    default='')
+PARSER.add_option('-h', '--host', dest='host', help='An ES HTTP API host',
+    default='127.0.0.1')
+PARSER.add_option('-p', '--port', dest='port', help='An ES HTTP API port', default=9200)
+PARSER.add_option('-r', '--region', dest='region',
+    help='AWS region in which the backup S3 bucket lives', default=9200, default='')
+PARSER.add_option('-b', '--s3_bucket', dest='s3_bucket',
+    help='AWS S3 bucket to place backups', default='')
+PARSER.add_option('-c', '--config_name', dest='config_name',
+    help='A snapshot configuration name')
+PARSER.add_option('-n', '--snapshot_name', dest='snapshot_name',
+    help='The name of the snapshot to create', default='')
+
+
+def create_snapshot_config(options):
+  print 'Creating snapshot configuration: {}'.format(options.config_name)
+  snapshot_config = {
+    'type': 's3',
+    'settings': {
+      'bucket': options.bucket,
+      'region': options.region,
+      'access_key': options.access_key,
+      'secret_key': options.secret_key,
+    },
+  }
+  snapshot_url = '/_snapshot/{}'.format(urllib.urlencode(options.config_name))
+  connection = httplib.HTTPConnection('{}:{}'.format(options.host, options.port))
+  connection.request('PUT', snapshot_url, json.dumps(snapshot_config))
+  response = connection.getresponse()
+  if response.status != 200:
+    print 'ERROR: Non-200 response code: {}'.format(response.status)
+    print response.reason
+    sys.exit(-3)
+  else:
+    print 'Successfully created snapshot configuration: {}'.format(options.config_name)
+    sys.exit(0)
+
+
+def create_snapshot(options):
+  snapshot_url = '/_snapshot/{}/{}?wait_for_completion=true'.format(
+      urllib.urlencode(options.config_name), urllib.urlencode(options.snapshot_name))
+  connection = httplib.HTTPConnection('{}:{}'.format(options.host, options.port))
+  connection.request('PUT', snapshot_url)
+  response = connection.getresponse()
+  if response.status != 200:
+    print 'ERROR: Non-200 response code: {}'.format(response.status)
+    print response.reason
+    sys.exit(-3)
+  else:
+    print 'Successfully created snapshot: {}'.format(options.snapshot_name)
+    sys.exit(0)
+
+
+if __name__ in '__main__':
+  (options, args) = PARSER.parse_args()
+  if len(args) < 1:
+    print 'Needs argument: create_snapshot_config, create_snapshot'
+    PARSER.usage()
+    sys.exit(-2)
+
+  mode = args[0].lower().strip()
+  if mode == 'create_snapshot_config':
+    create_snapshot_config(options)
+  elif mode == 'create_snapshot':
+    create_snapshot(options)
+  else:
+    PARSER.usage()
+    sys.exit(-1)

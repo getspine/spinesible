@@ -1,0 +1,12 @@
+---
+- name: Reload iptables configuration
+  command: firewall-cmd --reload
+  tags:
+    - bootstrap
+
+- name: Restart sshd
+  service:
+    name: sshd
+    state: restarted
+  tags:
+    - bootstrap

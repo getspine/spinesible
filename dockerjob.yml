@@ -1,0 +1,13 @@
+---
+- name: Establishes internal Docker job hosts
+  hosts: tag_ansible_group_dockerjob
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  vars_files:
+    - "dc_config/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+    - "dc_vars/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+
+  roles:
+    - docker

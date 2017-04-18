@@ -1,0 +1,37 @@
+---
+- name: Establishes a log aggregation node
+  hosts: tag_ansible_group_aggregator
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  vars_files:
+    - "dc_config/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+    - "dc_vars/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+
+  vars:
+    kafka_broker_id_tag: ec2_tag_zk_myid
+    kafka_hosts_group: tag_ansible_group_aggregator
+    kafka_zookeeper_hosts_group: tag_ansible_group_aggregator
+
+    logstash_configs:
+      - 02-kafka-input.conf
+      - 20-loggly-output.conf
+    logstash_kafka_topics:
+      - spine.containerlogs
+    logstash_install_plugins:
+      - logstash-input-beats
+      - logstash-output-loggly
+    logstash_throttle_after_count: 20
+    logstash_throttle_key: "%{resource}"
+    logstash_throttle_period: 1
+    logstash_throttle_max_age: 2
+
+    zookeeper_hosts_group: tag_ansible_group_aggregator
+
+  roles:
+    - confluent
+    - zookeeper
+    - kafka
+    - flume
+    - logstash

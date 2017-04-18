@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# Ensures that OpenTSDB is running.
+
+check process opentsdb with pidfile /var/run/opentsdb/opentsdb.pid
+  start program = "/etc/init.d/opentsdb start"
+  stop program = "/etc/init.d/opentsdb stop"
+  if failed port {{ opentsdb_port }} for {{ opentsdb_failure_cycles_before_restart }} cycles then restart

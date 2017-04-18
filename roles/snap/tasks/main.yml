@@ -1,0 +1,78 @@
+---
+- name: Write the snap.repo
+  template:
+    src: snap.repo.j2
+    dest: /etc/yum.repos.d/snap.repo
+    mode: 0644
+  tags:
+    - snap
+    - snap_install
+
+- name: import the snap repo key
+  rpm_key:
+    state: present
+    key: https://packagecloud.io/intelsdi-x/snap/gpgkey
+  tags:
+    - snap
+    - snap_install
+
+- name: install snap
+  yum:
+    name: snap-telemetry
+    state: present
+    update_cache: "{{ snap_should_upgrade }}"
+  tags:
+    - snap
+    - snap_install
+
+- name: Ensure install directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - "{{ snap_config_dir }}"
+    - "{{ snapd_auto_discover_path }}"
+  tags:
+    - snap
+    - snap_install
+
+- name: Download snap plugins
+  get_url:
+    url: "{{ item }}"
+    dest: "{{ snapd_auto_discover_path }}/"
+  with_items: "{{snap_plugin_urls}}"
+  notify: Restart snapd
+  tags:
+    - snap
+    - snap_plugins
+
+- name: Template out snap tasks
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ snapd_auto_discover_path }}/{{ item }}"
+    mode: 0755
+  with_items: "{{snap_tasks}}"
+  notify: Restart snapd
+  tags:
+    - snap
+    - snap_tasks
+
+- name: Write snapteld.conf
+  template:
+   src: snapteld.conf.j2
+   dest: "{{ snap_config_dir }}/snapteld.conf"
+   mode: 0644
+  notify: Restart snapd
+  tags:
+    - snap
+    - snap_install
+
+- name: Ensure snapd is started
+  service:
+    name: snap-telemetry
+    state: started
+    enabled: yes
+  tags:
+    - snap
+    - snap_install

@@ -1,0 +1,12 @@
+---
+- name: "Create IAM policy: {{ cur_iam_role_policy_name }}"
+  iam_policy:
+    iam_type: role
+    iam_name: "{{ cur_iam_role.name }}"
+    policy_name: "role-{{ cur_iam_role.name }}-{{ cur_iam_role_policy_name }}"
+    state: present
+    policy_json: "{{ lookup('template', provision_iam_policies[cur_iam_role_policy_name]) }}"
+  register: cur_iam_role_policy_response
+
+- debug:
+    var: cur_iam_role_policy_response

@@ -1,0 +1,24 @@
+---
+- name: Bootstrap ansible-bootstrap-epel Yum repository
+  template:
+    src: ansible-bootstrap-epel.repo.j2
+    dest: /etc/yum.repos.d/ansible-bootstrap-epel.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install epel-release package using bootstrap repository
+  yum:
+    name: epel-release
+    enablerepo: ansible-bootstrap-epel
+    state: present
+  ignore_errors: yes
+  retries: 12
+  delay: 10
+
+- name: Enable official EPEL repository
+  ini_file:
+    dest: /etc/yum.repos.d/epel.repo
+    section: epel
+    option: enabled
+    value: 1

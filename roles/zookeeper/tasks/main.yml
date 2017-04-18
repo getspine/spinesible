@@ -1,0 +1,139 @@
+---
+- name: Download ZooKeeper release tarball
+  get_url:
+    url: "{{ zookeeper_apache_mirror_base }}/zookeeper/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz"
+    dest: "{{ zookeeper_source_dir }}/zookeeper-{{ zookeeper_version }}.tar.gz"
+  register: zookeeper_download
+  tags:
+    - zookeeper
+
+- name: Untar ZooKeeper release tarball
+  command: "tar xzf {{ zookeeper_source_dir }}/zookeeper-{{ zookeeper_version }}.tar.gz"
+  args:
+    chdir: "{{ zookeeper_source_dir }}"
+    creates: "{{ zookeeper_source_dir }}/zookeeper-{{ zookeeper_version }}"
+  when: zookeeper_download.changed
+  tags:
+    - zookeeper
+
+- name: Create ZooKeeper user's group
+  group:
+    name: "{{ zookeeper_group }}"
+    system: yes
+  tags:
+    - zookeeper
+
+- name: Create ZooKeeper user
+  user:
+    name: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
+    home: "{{ zookeeper_state_dir }}"
+    createhome: no
+    system: yes
+  ignore_errors: yes
+  tags:
+    - zookeeper
+
+- name: Ensure that the ZooKeeper configuration directory exists
+  file:
+    path: /etc/zookeeper
+    state: directory
+    group: "{{ zookeeper_group }}"
+    mode: 0755
+  tags:
+    - zookeeper
+
+- name: Ensure that the ZooKeeper /var/run directory exists for PID file creation
+  file:
+    path: /var/run/zookeeper
+    state: directory
+    recurse: yes
+    group: "{{ zookeeper_group }}"
+    mode: 0775
+  tags:
+    - zookeeper
+
+- name: Ensure that the ZooKeeper state directory exists
+  file:
+    path: "{{ zookeeper_state_dir }}"
+    state: directory
+    recurse: yes
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
+  tags:
+    - zookeeper
+
+- name: Ensure that the ZooKeeper myid file reflects the correct ID of the server
+  template:
+    src: myid.j2
+    dest: "{{ zookeeper_state_dir }}/myid"
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
+  notify:
+    - Restart ZooKeeper
+  tags:
+    - zookeeper
+    - zookeeper_config
+
+- name: Ensure that the ZooKeeper log directory exists
+  file:
+    path: "{{ zookeeper_log_dir }}"
+    state: directory
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
+  tags:
+    - zookeeper
+
+- name: Template a ZooKeeper configuration
+  template:
+    src: zoo.cfg.j2
+    dest: /etc/zookeeper/zoo.cfg
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
+    mode: 0644
+  notify:
+    - Restart ZooKeeper
+  tags:
+    - zookeeper
+    - zookeeper_config
+
+- name: Template a ZooKeeper Log4j configuration
+  template:
+    src: log4j.properties.j2
+    dest: /etc/zookeeper/log4j.properties
+  notify:
+    - Restart ZooKeeper
+  tags:
+    - zookeeper
+    - zookeeper_config
+
+- name: Template a ZooKeeper systemd service script
+  template:
+    src: zookeeper.service.j2
+    dest: /usr/lib/systemd/system/zookeeper.service
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - zookeeper
+    - zookeeper_config
+
+- name: Ensure that the ZooKeeper service is running
+  service:
+    name: zookeeper
+    state: started
+    enabled: yes
+  tags:
+    - zookeeper
+    - zookeeper_config
+
+- name: Write a ZooKeeper logrotate
+  template:
+    src: zookeeper.logrotate.j2
+    dest: /etc/logrotate.d/zookeeper
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - zookeeper
+    - zookeeper_config

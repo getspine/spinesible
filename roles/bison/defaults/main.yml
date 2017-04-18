@@ -1,0 +1,7 @@
+---
+bison_gnu_mirror_base: https://ftp.gnu.org/gnu
+
+bison_install_dir: /usr
+bison_source_dir: /usr/src
+
+bison_version: 2.5.1

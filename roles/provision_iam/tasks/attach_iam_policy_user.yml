@@ -1,0 +1,12 @@
+---
+- name: "Create IAM policy: {{ cur_iam_user_policy_name }}"
+  iam_policy:
+    iam_type: user
+    iam_name: "{{ cur_iam_user.name }}"
+    policy_name: "{{ cur_iam_user.name }}-{{ cur_iam_user_policy_name }}"
+    state: present
+    policy_json: "{{ lookup('template', provision_iam_policies[cur_iam_user_policy_name]) }}"
+  register: cur_iam_user_policy_response
+
+- debug:
+    var: cur_iam_user_policy_response

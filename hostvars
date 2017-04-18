@@ -1,0 +1,12 @@
+#!/bin/bash
+# Returns the hostvars for a given Ansible host group.
+
+set -eo pipefail
+
+DIR=$(git rev-parse --show-toplevel)
+INV="${DIR}/ansible/inventory/ec2"
+
+source ${DIR}/utils/spinedc
+source ${DIR}/env/bin/activate
+
+${DIR}/env/bin/ansible "${1}" -u ansibler -i ${INV} -m debug -a"var=hostvars"

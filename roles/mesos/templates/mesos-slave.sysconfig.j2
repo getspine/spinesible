@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+# Configures the Mesos slave daemon.
+
+MESOS_SLAVE_ARGS=(
+  --attributes='{{ mesos_slave_attributes|join(';') }}'
+  --cgroups_hierarchy='{{ mesos_cgroups_hierarchy_dir }}'
+  --cgroups_root='{{ mesos_cgroups_root }}'
+  --containerizers='{{ mesos_containerizers|join(',') }}'
+  --executor_registration_timeout='{{ mesos_executor_timeout }}'
+  --gc_delay='{{ mesos_slave_gc_delay }}'
+  --ip="$(/sbin/ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1)"
+  --isolation='{{ mesos_isolators|join(',') }}'
+  --log_dir='{{ mesos_log_dir }}/slave'
+  --master="$(cat /etc/mesos/zk)"
+  --port='{{ mesos_slave_port }}'
+  --resources='{{ mesos_slave_resources|join(';') }}'
+  --work_dir='{{ mesos_work_dir }}/slave'
+)

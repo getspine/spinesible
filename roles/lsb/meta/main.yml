@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: Steve Salevan <steve@spi.ne>
+  description: Ensures that an LSB environment exists
+  license: MIT
+  min_ansible_version: 1.2

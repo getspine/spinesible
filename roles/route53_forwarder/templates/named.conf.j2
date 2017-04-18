@@ -1,0 +1,20 @@
+options {
+  recursion yes;
+
+  allow-query { any; };
+
+  dnssec-enable yes;
+  dnssec-validation yes;
+
+  auth-nxdomain no;
+  listen-on-v6 { any; };
+
+  forwarders {
+{% for forwarder_ip in route53_forwarder_ips %}
+    {{ forwarder_ip }};
+{% endfor %}
+    8.8.8.8;
+    8.8.4.4;
+  };
+  forward only;
+};

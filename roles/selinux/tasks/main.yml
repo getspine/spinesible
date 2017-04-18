@@ -1,0 +1,45 @@
+---
+- name: Install SELinux packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ selinux_packages }}"
+  tags:
+    - selinux
+
+- name: Set SELinux policy and state
+  selinux:
+    policy: "{{ selinux_policy }}"
+    state: "{{ selinux_state }}"
+  tags:
+    - selinux
+
+- name: Ensure that the SELinux modules directory exists
+  file:
+    path: /etc/selinux/modules
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - selinux
+    - selinux_modules
+
+- name: Apply all SELinux modules
+  include: apply_module.yml
+  with_items: "{{ selinux_modules }}"
+  loop_control:
+    loop_var: selinux_module
+  tags:
+    - selinux
+    - selinux_modules
+
+- name: Set any SELinux booleans
+  seboolean:
+    name: "{{ item.key }}"
+    state: "{{ item.value }}"
+    persistent: yes
+  with_dict: "{{ selinux_booleans }}"
+  tags:
+    - selinux
+    - selinux_booleans

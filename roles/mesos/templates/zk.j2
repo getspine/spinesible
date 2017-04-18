@@ -1,0 +1,6 @@
+{%- if mesos_zookeeper_username and mesos_zookeeper_password -%}
+{%- set auth_preamble = "%s:%s@" % (mesos_zookeeper_username, mesos_zookeeper_password) -%}
+{%- else -%}
+{%- set auth_preamble = "" -%}
+{%- endif -%}
+zk://{{ auth_preamble }}{% for zookeeper_host in mesos_zookeeper_quorum.split(',') %}{{ zookeeper_host }}:{{ mesos_zookeeper_port }}{% if not loop.last %},{% endif %}{% endfor %}{{ mesos_zookeeper_znode }}

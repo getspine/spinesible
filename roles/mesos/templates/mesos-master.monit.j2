@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# Ensures that daemon running the Mesos master process is monitored.
+
+check process mesos-master matching /usr/sbin/mesos-master
+  if failed host {{ mesos_ip }} port {{ mesos_master_port }} type tcp for {{ mesos_failure_cycles_before_restart }} cycles then restart
+  start program = "/bin/systemctl start mesos-master.service"
+  stop program = "/bin/systemctl stop mesos-master.service"

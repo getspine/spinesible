@@ -1,0 +1,3 @@
+{% for acl in kdc_acls %}
+{{ acl.role }}@{{ kdc_realm_name | upper() }}     {{ acl.acl }}
+{% endfor %}

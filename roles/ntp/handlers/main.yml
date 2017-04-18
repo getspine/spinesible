@@ -1,0 +1,9 @@
+---
+- name: Restart NTP
+  service:
+    name: ntpd
+    state: restarted
+  when: ntp_enabled
+  tags:
+    - ntp
+    - ntp_restart

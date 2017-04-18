@@ -1,0 +1,33 @@
+---
+- name: "Modifies EC2 tag {{ lookup('env', 'KEY') }}:{{ lookup('env', 'VALUE') }} against {{ lookup('env', 'ANSIBLE_GROUP') }}"
+  hosts: "{{ lookup('env', 'ANSIBLE_GROUP') }}"
+  become: no
+  gather_facts: no
+
+  vars_files:
+    - "dc_config/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+    - "dc_vars/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+
+  vars:
+    tag_should_delete: "{{ lookup('env', 'SHOULD_DELETE') | default('no') }}"
+    tag_json: |
+      { "{{ lookup('env', 'KEY') }}": "{{ lookup('env', 'VALUE') }}" }
+
+  tasks:
+    - name: "Remove EC2 tag: {{ lookup('env', 'KEY') }}:{{ lookup('env', 'VALUE') }}"
+      local_action:
+        module: ec2_tag
+        region: "{{ ec2_region }}"
+        resource: "{{ ec2_id }}"
+        state: absent
+        tags: "{{ tag_json }}"
+      when: tag_should_delete == 'yes'
+
+    - name: "Set EC2 tag: {{ lookup('env', 'KEY') }}:{{ lookup('env', 'VALUE') }}"
+      local_action:
+        module: ec2_tag
+        region: "{{ ec2_region }}"
+        resource: "{{ ec2_id }}"
+        state: present
+        tags: "{{ tag_json }}"
+      when: tag_should_delete == 'no'

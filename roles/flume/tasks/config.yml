@@ -1,0 +1,49 @@
+---
+- name: Template Flume configuration
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ flume_config_dir }}/{{ item }}"
+  with_items: "{{ flume_config_files }}"
+  notify:
+    - Restart Flume agent
+  tags:
+    - flume
+    - flume_config
+    - flume_agent
+
+- name: Create a systemd config for the Flume agent
+  template:
+    src: flume.service.j2
+    dest: /etc/systemd/system/flume.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart Flume agent
+  when: "'agent' in flume_roles"
+  tags:
+    - flume
+    - flume_config
+    - flume_agent
+
+- name: Ensure that the Flume agent service is running
+  service:
+    name: flume
+    state: started
+    enabled: yes
+  when: "'agent' in flume_roles"
+  tags:
+    - flume
+    - flume_agent
+
+- name: Ensure that Flume firewall ports are open (if desired)
+  firewalld:
+    port: "{{ item.port }}/{{ item.type }}"
+    state: enabled
+    permanent: yes
+  with_items: "{{ flume_firewall_ports }}"
+  when: "'agent' in flume_roles and flume_update_firewall"
+  tags:
+    - flume
+    - flume_agent
+    - flume_firewall

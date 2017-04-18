@@ -1,0 +1,13 @@
+---
+- name: "Look up the definition for section: {{ spine_section_name }}"
+  set_fact:
+    spine_section: "{{ spine_sections[spine_section_name] }}"
+  tags:
+    - provision_spine_dc
+    - provision_spine_dc_sgs
+
+- name: "Ensure that all roles are provisioned for section: {{ spine_section_name }}"
+  include: ensure_role_provisioned.yml
+  with_items: "{{ spine_section.provisioning_order }}"
+  loop_control:
+    loop_var: cur_role_name

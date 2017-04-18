@@ -1,0 +1,15 @@
+---
+thermos_roles:
+  - executor
+  - observer
+
+thermos_should_upgrade: no
+
+thermos_version: "{{ aurora_version|default('0.9.0') }}"
+
+thermos_bin_dir: /usr/bin/thermos
+thermos_log_dir: /var/log/thermos
+
+thermos_observer_port: 1338
+thermos_observer_log_level: INFO
+thermos_observer_failure_cycles_before_restart: 5

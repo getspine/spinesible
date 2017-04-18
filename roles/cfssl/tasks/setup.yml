@@ -1,0 +1,82 @@
+---
+- name: Setup cfssl base user's group
+  group:
+    name: "{{ cfssl_group }}"
+    system: yes
+  tags:
+    - cfssl
+
+- name: Setup cfssl base user's user
+  user:
+    name: "{{ cfssl_user }}"
+    system: yes
+    group: "{{ cfssl_group }}"
+  tags:
+    - cfssl
+
+- name: Ensure that cfssl config directory exists
+  file:
+    path: /etc/cfssl
+    state: directory
+    owner: "{{ cfssl_user }}"
+    group: "{{ cfssl_group }}"
+  tags:
+    - cfssl
+    - cfssl_config
+    - cfssl_ssl
+
+- name: Copy cfssl CA cert
+  copy:
+    content: "{{ cfssl_ca_cert }}"
+    dest: "{{ cfssl_ca_cert_loc }}"
+    owner: "{{ cfssl_user }}"
+    group: "{{ cfssl_group }}"
+    mode: 0644
+  notify:
+    - Restart cfssl
+  tags:
+    - cfssl
+    - cfssl_ssl
+
+- name: Copy cfssl CA key
+  copy:
+    content: "{{ cfssl_ca_key }}"
+    dest: "{{ cfssl_ca_key_loc }}"
+    owner: "{{ cfssl_user }}"
+    group: "{{ cfssl_group }}"
+    mode: 0600
+  notify:
+    - Restart cfssl
+  tags:
+    - cfssl
+    - cfssl_ssl
+
+- name: Template cfssl configuration
+  template:
+    src: config.json.j2
+    dest: /etc/cfssl/production.json
+    owner: "{{ cfssl_user }}"
+    group: "{{ cfssl_group }}"
+  notify:
+    - Restart cfssl
+  tags:
+    - cfssl
+    - cfssl_config
+
+- name: Ensure that cfssl systemd service is installed
+  template:
+    src: cfssl.service.j2
+    dest: /etc/systemd/system/cfssl.service
+  notify:
+    - Reload systemd and restart cfssl
+  tags:
+    - cfssl
+    - cfssl_config
+
+- name: Ensure that cfssl service is running
+  service:
+    name: cfssl
+    state: started
+    enabled: yes
+  tags:
+    - cfssl

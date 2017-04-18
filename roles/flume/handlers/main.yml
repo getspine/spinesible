@@ -1,0 +1,9 @@
+---
+- name: Restart Flume agent
+  service:
+    name: flume
+    state: restarted
+    enabled: yes
+  tags:
+    - flume
+    - flume_agent

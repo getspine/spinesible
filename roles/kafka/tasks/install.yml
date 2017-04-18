@@ -1,0 +1,71 @@
+---
+- name: Setup Kafka user's group
+  group:
+    name: "{{ kafka_group }}"
+    system: yes
+  tags:
+    - kafka
+    - kafka_server
+
+- name: Setup Kafka user's user
+  user:
+    name: "{{ kafka_user }}"
+    system: yes
+    group: "{{ kafka_group }}"
+  tags:
+    - kafka
+    - kafka_server
+
+- name: Ensure that Kafka directories are created
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+  with_items:
+    - "{{ kafka_dir }}"
+    - "{{ kafka_config_dir }}"
+    - "{{ kafka_log_dir }}"
+    - "{{ kafka_data_dir }}"
+  tags:
+    - kafka
+
+- name: Fetch Kafka release tarball
+  get_url:
+    dest: "{{ kafka_dir }}/kafka_{{ kafka_scala_version}}-{{ kafka_version }}.tgz"
+    url: "{{ kafka_apache_mirror }}/kafka/{{ kafka_version }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+  tags:
+    - kafka
+
+- name: Uncompress the Kafka release tarball
+  unarchive:
+    src: "{{ kafka_dir }}/kafka_{{ kafka_scala_version}}-{{ kafka_version }}.tgz"
+    copy: no
+    creates: "{{ kafka_dir }}/kafka_{{ kafka_scala_version }}"
+    dest: "{{ kafka_dir }}"
+  tags:
+    - kafka
+
+- name: Ensure that config and log directories are removed
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ kafka_dir }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}/config"
+    - "{{ kafka_dir }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}/logs"
+  tags:
+    - kafka
+
+- name: Map config and log directories to proper locations
+  file:
+    src: "{{ item.from }}"
+    dest: "{{ item.to }}"
+    state: link
+  with_items:
+    - from: "{{ kafka_config_dir }}"
+      to: "{{ kafka_dir }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}/config"
+    - from: "{{ kafka_log_dir }}"
+      to: "{{ kafka_dir }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}/logs"
+  tags:
+    - kafka

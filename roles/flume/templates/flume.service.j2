@@ -1,0 +1,17 @@
+# Ensures that the Flume agent daemon is running.
+# {{ ansible_managed }}
+
+[Unit]
+Description=Flume Agent Daemon
+
+[Service]
+Type=simple
+User={{ flume_user }}
+Group={{ flume_group }}
+LimitNOFILE={{ flume_ulimit_files }}
+Restart=on-failure
+Environment="JAVA_HOME=/usr/lib/jvm/java/"
+ExecStart={{ flume_dir }}/apache-flume-{{ flume_version }}-bin/bin/flume-ng agent --conf {{ flume_config_dir }} --conf-file {{ flume_config_dir }}/flume-conf.properties --name {{ flume_agent_name }} -Dlog4j.configuration=file:{{ flume_config_dir }}/log4j.properties
+
+[Install]
+WantedBy=multi-user.target

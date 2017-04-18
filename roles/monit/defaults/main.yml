@@ -1,0 +1,7 @@
+---
+check_interval_secs: 3
+
+event_queue_slots: 100
+
+monit_alert_email: root@localhost
+monit_start_service: true

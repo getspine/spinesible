@@ -1,0 +1,45 @@
+---
+hadoop_config_site_name: spinesible
+
+# The default block size for new files, in bytes - here 256 MB
+hadoop_config_dfs_blocksize: 268435456
+
+# Upper bound on the number of files that it will serve at any one time
+hadoop_config_max_xcievers: 4096
+
+# The Hadoop DataNode heap size
+hadoop_config_datanode_heapsize: 12278
+
+# List of directories in which the DFS NameNode should store the name table.
+# Multiple directories will each get replicated data.
+hadoop_config_dfs_name_dir:
+  - file:///data/dfs/nn
+
+# List of directories in which the DFS DataNode should store its blocks.
+# Multiple directories will each get replicated data.
+hadoop_config_dfs_data_dir:
+  - file:///data/dfs/dn
+
+hadoop_config_jobhistory_group: hadoop_jobhistory
+hadoop_config_journalnode_group: hadoop_journalnode
+hadoop_config_namenode_group: hadoop_namenode
+hadoop_config_slave_group: hadoop_datanode
+hadoop_config_zookeeper_group: hadoop_zookeeper
+
+hadoop_config_excluded_datanodes: []
+
+hadoop_config_files:
+  - capacity-scheduler.xml
+  - configuration.xsl
+  - container-executor.cfg
+  - core-site.xml
+  - dfs.hosts.exclude
+  - hadoop-metrics.properties
+  - hadoop-metrics2.properties
+  - hadoop-policy.xml
+  - hdfs-site.xml
+  - log4j.properties
+  - mapred-site.xml
+  - slaves
+  - yarn-env.sh
+  - yarn-site.xml

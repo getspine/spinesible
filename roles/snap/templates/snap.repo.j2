@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+
+# This came from https://packagecloud.io/install/repositories/intelsdi-x/snap/config_file.repo?os=${os}&dist=${dist}&source=script
+# where os=centos and dist=7
+
+[intelsdi-x_snap]
+name=intelsdi-x_snap
+baseurl=https://packagecloud.io/intelsdi-x/snap/el/7/$basearch
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/intelsdi-x/snap/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+
+[intelsdi-x_snap-source]
+name=intelsdi-x_snap-source
+baseurl=https://packagecloud.io/intelsdi-x/snap/el/7/SRPMS
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/intelsdi-x/snap/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300

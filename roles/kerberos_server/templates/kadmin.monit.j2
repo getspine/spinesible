@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+# Ensures that kerberos admin server is running.
+
+check process kadmin with pidfile /var/run/kadmind.pid
+  start program = "/bin/systemctl start kadmin.service"
+  stop program = "/bin/systemctl stop kadmin.service"
+  if cpu > 98% for 5 cycles then restart
+  if failed port {{ kdc_port }} type tcp {{ kdc_failure_cycles_before_restart }} cycles then restart

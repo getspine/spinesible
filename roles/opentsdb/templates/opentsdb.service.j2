@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+# Establishes a service configuration for OpenTSDB
+
+[Unit]
+Description=OpenTSDB Service
+After=network.target
+ 
+[Service]
+Type=forking
+PrivateTmp=yes
+ExecStart=/etc/init.d/opentsdb start
+ExecStop=/etc/init.d/opentsdb stop
+Restart=on-abort
+ 
+[Install]
+WantedBy=multi-user.target

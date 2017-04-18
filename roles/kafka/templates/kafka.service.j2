@@ -1,0 +1,19 @@
+# Ensures that the Kafka server daemon is running.
+# {{ ansible_managed }}
+
+[Unit]
+Description=Kafka Server Daemon
+After=zookeeper.service
+
+[Service]
+Type=simple
+User={{ kafka_user }}
+Group={{ kafka_group }}
+LimitNOFILE=infinity
+Restart=on-failure
+Environment="KAFKA_LOG4J_OPTS=-Dlog4j.configuration=file:{{ kafka_config_dir }}/log4j.properties"
+Environment="KAFKA_HEAP_OPTS={{ kafka_heap_opts }}"
+ExecStart={{ kafka_dir }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}/bin/kafka-server-start.sh {{ kafka_config_dir }}/server.properties
+
+[Install]
+WantedBy=multi-user.target

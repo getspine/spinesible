@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+# Ensures that daemon running the Flume server process is monitored.
+
+check process flume matching {{ flume_dir }}/apache-flume-{{ flume_version }}-bin
+{% for listener in flume_listeners_to_monitor %}
+  if failed host {{ listener.host }} port {{ listener.port }} type tcp for {{ flume_failure_cycles_before_restart }} cycles then restart
+{% endfor %}
+  start program = "/bin/systemctl start flume.service"
+  stop program = "/bin/systemctl stop flume.service"

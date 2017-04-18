@@ -1,0 +1,20 @@
+---
+- name: Create Logstash configuration files.
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/logstash/conf.d/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items: "{{logstash_configs}}"
+  notify: Restart Logstash
+
+- name: Create Logstash filters.
+  copy:
+    src: "filters/{{ item }}"
+    dest: "/etc/logstash/conf.d/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items: "{{logstash_filter_configs}}"
+  notify: Restart Logstash

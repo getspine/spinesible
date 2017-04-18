@@ -1,0 +1,56 @@
+---
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat"
+  tags:
+    - nginx
+
+- name: Write nginx.conf
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Ensure nginx is running
+    - Reload nginx
+  tags:
+    - nginx
+    - nginx_config
+
+- name: Write an nginx Monit configuration
+  template:
+    src: nginx.monit.j2
+    dest: /etc/monit.d/nginx.conf
+  notify:
+    - Reload Monit
+  tags:
+    - nginx
+
+- name: Ensure nginx service is running
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+  tags:
+    - nginx
+
+- name: Write nginx logrotate
+  template:
+    src: nginx.logrotate.j2
+    dest: /etc/logrotate.d/nginx
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - nginx
+
+- name: Clean out the packaged default configurations
+  file:
+    name: "/etc/nginx/conf.d/{{ item }}"
+    state: absent
+  with_items:
+    - default.conf
+    - example_ssl.conf
+  tags:
+    - nginx

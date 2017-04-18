@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: Steve Salevan <steve@spi.ne>
+  description: Bootstraps a freshly-provisioned server node
+  license: MIT
+  min_ansible_version: 1.6
+  categories:
+    - system
+
+dependencies:
+  - role: epel
+  - role: git
+  - role: monit
+  - role: ntp
+  - role: yum-cron
+  - role: selinux
+  - role: awscli
+  - role: loggly

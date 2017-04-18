@@ -1,0 +1,16 @@
+---
+- name: "Ensure that the base Security Group has been established for role: {{ cur_role_name }}"
+  ec2_group:
+    name: "{{ cur_role_sg_name }}"
+    description: "Base SG for role {{ cur_role_name }} in section {{ spine_section_name }}"
+    vpc_id: "{{ spine_vpc_to_id[cur_vpc_cidr] }}"
+    region: "{{ spine_datacenter }}"
+    rules: "{{ cur_role.sg_rules }}"
+    rules_egress: "{{ cur_role['sg_rules_egress'] | default(spine_section.default_egress_rules) }}"
+  ignore_errors: yes
+  register: base_sg_response
+
+- debug:
+    var: base_sg_response
+
+- include: track_new_sg.yml

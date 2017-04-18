@@ -1,0 +1,35 @@
+---
+- debug:
+    var: spine_cur_subnet
+
+- name: "Ensure that subnet is present in {{ spine_cur_vpc_id }}: {{ spine_cur_subnet.cidr }}"
+  ec2_vpc_subnet:
+    state: present
+    az: "{{ spine_cur_subnet.az }}"
+    region: "{{ spine_datacenter }}"
+    profile: "{{ spine_datacenter }}"
+    vpc_id: "{{ spine_cur_vpc_id }}"
+    cidr: "{{ spine_cur_subnet.cidr }}"
+    resource_tags: "{{ spine_cur_subnet.tags | to_json }}"
+  register: spine_cur_vpc_subnet_response
+
+- debug:
+    var: spine_cur_vpc_subnet_response
+
+- name: "Extract subnet ID for subnet: {{ spine_cur_subnet.cidr }}"
+  set_fact:
+    spine_cur_subnet_id: "{{ spine_cur_vpc_subnet_response.subnet.id }}"
+
+- name: "Track the mapping between {{ spine_cur_subnet.cidr }}->{{ spine_cur_subnet_id }}"
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_subnet_to_id#{{ spine_cur_subnet.cidr }}"
+    value: "{{ spine_cur_subnet_id }}"
+
+- name: "Track the mapping between {{ spine_cur_subnet_id }}->{{ spine_cur_subnet.cidr }}"
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_id_to_subnet#{{ spine_cur_subnet_id }}"
+    value: "{{ spine_cur_subnet.cidr }}"

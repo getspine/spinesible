@@ -1,0 +1,52 @@
+---
+- name: "Figure out the VPC ID for the current VPC: {{ spine_cur_vpc.cidr_block }}"
+  yedit:
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    state: list
+    key: "spine_vpc_to_id#{{ spine_cur_vpc.cidr_block }}"
+  register: spine_cur_vpc_id
+
+- name: "Figure out the VPC ID for the peer VPC: {{ spine_peer_vpc_cidr_block }}"
+  yedit:
+    state: list
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_vpc_to_id#{{ spine_peer_vpc_cidr_block }}"
+  register: spine_peer_vpc_id
+
+- name: "Ensure VPC peering between: {{ spine_cur_vpc.cidr_block }}<->{{ spine_peer_vpc_cidr_block }}"
+  ec2_vpc_peer:
+    state: present
+    region: "{{ spine_datacenter }}"
+    profile: "{{ spine_datacenter }}"
+    vpc_id: "{{ spine_cur_vpc_id.result }}"
+    peer_vpc_id: "{{ spine_peer_vpc_id.result }}"
+    tags:
+      Name: "{{ spine_cur_vpc.cidr_block }}<->{{ spine_peer_vpc_cidr_block }}"  
+  register: vpc_peering_response
+
+- debug:
+    var: vpc_peering_response
+
+- name: "Accept VPC peering between: {{ spine_cur_vpc.cidr_block }}<->{{ spine_peer_vpc_cidr_block }} (if needed)"
+  ec2_vpc_peer:
+    state: accept
+    region: "{{ spine_datacenter }}"
+    profile: "{{ spine_datacenter }}"
+    peering_id: "{{ vpc_peering_response.peering_id }}"
+    tags:
+      Name: "{{ spine_cur_vpc.cidr_block }}<->{{ spine_peer_vpc_cidr_block }}"  
+  when: vpc_peering_response.changed
+
+- name: "Track peering between: {{ spine_cur_vpc.cidr_block }}->{{ spine_peer_vpc_cidr_block }}"
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_peering_connections#{{ spine_cur_vpc.cidr_block }}#{{ spine_peer_vpc_cidr_block }}"
+    value: "{{ vpc_peering_response.peering_id }}"
+
+- name: "Track peering between: {{ spine_peer_vpc_cidr_block }}->{{ spine_cur_vpc.cidr_block }}"
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_peering_connections#{{ spine_peer_vpc_cidr_block }}#{{ spine_cur_vpc.cidr_block }}"
+    value: "{{ vpc_peering_response.peering_id }}"

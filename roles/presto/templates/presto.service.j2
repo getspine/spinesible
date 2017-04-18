@@ -1,0 +1,16 @@
+# Ensures that the Presto daemon is running.
+# {{ ansible_managed }}
+
+[Unit]
+Description=Presto Daemon
+
+[Service]
+Type=simple
+User={{ presto_user }}
+Group={{ presto_group }}
+LimitNOFILE={{ presto_ulimit_files }}
+Restart=on-failure
+ExecStart={{ presto_dir }}/presto-server-{{ presto_version }}/bin/launcher run --node-config={{ presto_config_dir }}/node.properties --jvm-config={{ presto_config_dir }}/jvm.config --config={{ presto_config_dir }}/config.properties --log-levels-file={{ presto_config_dir }}/log.properties --launcher-log-file={{ presto_log_dir }}/launcher.log --server-log-file={{ presto_log_dir }}/server.log
+
+[Install]
+WantedBy=multi-user.target

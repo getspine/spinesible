@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+
+[Unit]
+Description=Zookeeper distributed coordination server
+After=network.target
+
+[Service]
+User=zookeeper
+Group=zookeeper
+SyslogIdentifier=zookeeper
+Restart=always
+StartLimitInterval=0
+RestartSec=15
+LimitNOFILE=infinity
+KillMode=process
+ExecStart=/usr/bin/java \
+  -Djava.net.preferIPv4Stack=true \
+  -Dzookeeper.log.dir={{ zookeeper_log_dir }} \
+  -Dzookeeper.root.logger=INFO,ROLLINGFILE \
+  -Dlog4j.configuration=file:/etc/zookeeper/log4j.properties \
+  -jar {{ zookeeper_source_dir }}/zookeeper-{{ zookeeper_version }}/contrib/fatjar/zookeeper-{{ zookeeper_version }}-fatjar.jar \
+  server \
+  /etc/zookeeper/zoo.cfg
+
+[Install]
+WantedBy=multi-user.target

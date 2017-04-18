@@ -1,0 +1,143 @@
+---
+- name: Ensure that cluster name is an a templatable state
+  set_fact:
+    aurora_replicated_log_node: "{{ aurora_schedulers.split(',')[0] }}"
+  tags:
+    - aurora
+
+- name: Ensure that the Aurora Yum repository is present
+  template:
+    src: aurora.repo.j2
+    dest: /etc/yum.repos.d/aurora.repo
+    mode: 0644
+  tags:
+    - aurora
+
+- name: Install Aurora scheduler RPMs (if desired)
+  yum:
+    name: aurora-scheduler
+    state: "{% if aurora_should_upgrade %}latest{% else %}present{% endif %}"
+    update_cache: "{{ aurora_should_upgrade }}"
+    enablerepo: ssalevan_aurora
+  notify:
+    - Restart Aurora scheduler
+  when: '"scheduler" in aurora_roles'
+  tags:
+    - aurora
+
+- name: Install Aurora client RPM
+  yum:
+    name: aurora-tools
+    state: "{% if aurora_should_upgrade %}latest{% else %}present{% endif %}"
+    update_cache: "{{ aurora_should_upgrade }}"
+    enablerepo: ssalevan_aurora
+  when: '"client" in aurora_roles'
+  tags:
+    - aurora
+
+- name: Ensure that the Aurora directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: aurora
+    group: aurora
+    recurse: yes
+  with_items:
+    - "{{ aurora_log_dir }}"
+    - "{{ aurora_conf_dir }}"
+    - "{{ aurora_state_dir }}"
+    - "{{ aurora_state_dir }}/{{ aurora_backup_path }}"
+  when: '"scheduler" in aurora_roles'
+  tags:
+    - aurora
+
+- name: Ensure that the Aurora user is in its specified group
+  user:
+    name: aurora
+    append: yes
+    groups: "{{ aurora_group }}"
+  tags:
+    - aurora
+    - aurora_group
+
+- name: Template Aurora ZooKeeper quorum files
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ aurora_conf_dir }}/{{ item }}"
+  with_items:
+    - zk
+  when: '"scheduler" in aurora_roles'
+  tags:
+    - aurora
+    - aurora_config
+
+- name: Ensure that the Mesos master service is running
+  service:
+    name: mesos-master
+    state: "{% if aurora_should_upgrade %}restarted{% else %}started{% endif %}"
+  when: '"scheduler" in aurora_roles'
+  tags:
+    - aurora
+
+- name: Ensure that the Aurora replicated log has been initialized
+  command: "mesos-log initialize --path='{{ aurora_state_dir }}/{{ aurora_native_log_path }}'"
+  args:
+    creates: "{{ aurora_state_dir }}/{{ aurora_native_log_path }}"
+  when: '"scheduler" in aurora_roles'
+  tags:
+    - aurora
+    - aurora_replicated_log
+
+- name: Setup the Aurora scheduler's sysconfig
+  template:
+    src: aurora.sysconfig.j2
+    dest: /etc/sysconfig/aurora-scheduler
+  when: '"scheduler" in aurora_roles'
+  notify:
+    - Restart Aurora scheduler
+  tags:
+    - aurora
+    - aurora_config
+
+- name: Ensure that the Aurora service is running
+  service:
+    name: aurora-scheduler
+    state: "{% if aurora_should_upgrade %}restarted{% else %}started{% endif %}"
+    enabled: yes
+  when: '"scheduler" in aurora_roles'
+  tags:
+    - aurora
+
+- name: Template a cluster configuration file for Aurora client binaries
+  template:
+    src: clusters.json.j2
+    dest: "{{ aurora_conf_dir }}/clusters.json"
+  when: "'client' in aurora_roles"
+  tags:
+    - aurora
+    - aurora_client
+    - aurora_client_config
+
+- name: Add an Nginx configuration to support SSL operation
+  template:
+    src: aurora.nginx.conf.j2
+    dest: /etc/nginx/conf.d/aurora.conf
+    mode: 0644
+    owner: root
+    group: root
+  register: aurora_nginx_config
+  when: aurora_enable_nginx_ssl
+  tags:
+    - aurora
+    - aurora_config
+    - aurora_nginx
+
+- name: Reload nginx (if needed)
+  service:
+    name: nginx
+    state: reloaded
+  when: aurora_enable_nginx_ssl and aurora_nginx_config.changed
+  tags:
+    - aurora
+    - aurora_config
+    - aurora_nginx

@@ -1,0 +1,12 @@
+[{
+  "name": "{{ aurora_cluster_name }}",
+  "zk": "{{ hostvars | private_ips(groups[aurora_zookeeper_quorum_group], aurora_zookeeper_port) | join(',') }}",
+  "scheduler_zk_path": "{{ aurora_serverset_zk_path }}",
+{% if aurora_enable_kerberos %}
+  "auth_mechanism": "KERBEROS",
+{% else %}
+  "auth_mechanism": "UNAUTHENTICATED",
+{% endif %}
+  "slave_run_directory": "latest",
+  "slave_root": "{{ mesos_work_dir }}/{{ mesos_cluster_name }}/slave"
+}]

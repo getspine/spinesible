@@ -1,0 +1,7 @@
+---
+- name: Restart Elasticsearch
+  monit:
+    name: elasticsearch
+    state: restarted
+  tags:
+    - elasticsearch

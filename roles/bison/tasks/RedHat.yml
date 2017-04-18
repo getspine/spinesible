@@ -1,0 +1,9 @@
+---
+- name: Ensure that bison build dependencies are present
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - gcc
+    - make
+    - paco

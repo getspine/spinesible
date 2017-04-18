@@ -1,0 +1,44 @@
+#defaults file for snap
+---
+# Install paths
+snap_bin_path: /usr/local/bin
+snap_config_dir: /etc/snap
+# everything is autoloaded from snapd_auto_discover_path
+#snap_plugin_path: "{{ snap_config_dir }}/plugins"
+#snap_task_path: "{{ snap_config_dir }}/tasks"
+
+# refreshes the cache on the snap repo
+snap_should_upgrade: yes
+
+# Set to 'yes' to install monit and snap monit configuration
+snap_use_monit: yes
+
+# Startup arguments applied to snapd
+# https://github.com/intelsdi-x/snap/blob/master/docs/SNAPTELD_CONFIGURATION.md
+# 1 - Debug, 2 - Info, 3 - Warning, 4 - Error, 5 - Fatal.
+snapd_log_level: 2
+snapd_log_path: /var/log/snap
+snapd_max_processors: 1
+snapd_auto_discover_path: "{{ snap_config_dir }}/autoload"
+snapd_cache_expiration: 500ms
+snapd_max_running_plugins: 3
+# Valid values are 0 - Off, 1 - Enabled, 2 - Warning
+snapd_plugin_trust_level: 0
+snapd_work_manager_queue_size: 25
+snapd_work_manager_pool_size: 4
+
+
+# additional plugins to install, most found here: https://github.com/intelsdi-x/snap/blob/master/docs/PLUGIN_CATALOG.md
+snap_plugin_urls:
+  - https://github.com/intelsdi-x/snap-plugin-collector-cpu/releases/download/6/snap-plugin-collector-cpu_linux_x86_64
+  #- https://github.com/intelsdi-x/snap-plugin-collector-df/releases/download/6/snap-plugin-collector-df_linux_x86_64
+  #- https://github.com/intelsdi-x/snap-plugin-collector-docker/releases/download/6/snap-plugin-collector-docker_linux_x86_64
+  #- https://github.com/intelsdi-x/snap-plugin-collector-mesos/releases/download/v1/snap-plugin-collector-mesos-v1-linux-amd64.gz
+  #- https://github.com/intelsdi-x/snap-plugin-publisher-file/releases/download/2/snap-plugin-publisher-file_linux_x86_64
+  - https://github.com/intelsdi-x/snap-plugin-publisher-opentsdb/releases/download/9/snap-plugin-publisher-opentsdb_linux_x86_64
+
+snap_tasks:
+  - base_task.yml
+
+opentsdb_url: opentsdb.main.hbase.spi.ne
+opentsdb_port: 4242

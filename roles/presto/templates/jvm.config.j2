@@ -1,0 +1,5 @@
+# Provides JVM launch options for Presto.
+# {{ ansible_managed }}
+{% for jvm_param in presto_jvm_params %}
+{{ jvm_param }}
+{% endfor %}

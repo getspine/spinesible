@@ -1,0 +1,94 @@
+---
+- name: Shut down the Mesos slave (if purging slave state)
+  monit:
+    name: mesos-slave
+    state: stopped
+  ignore_errors: yes
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave
+
+- name: Wait for Mesos slave to die (if purging slave state)
+  pause:
+    seconds: 10
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave
+
+- name: Ensure the death of the Mesos slave (if purging slave state)
+  command: pkill -f -9 mesos-slave
+  ignore_errors: yes
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave
+
+- name: More waiting for the Mesos slave to die (if purging slave state)
+  pause:
+    seconds: 10
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave
+
+- name: Purge Mesos slave directories (if purging slave state)
+  command: "rm -rf {{ mesos_work_dir }}/slave/*"
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave
+
+- name: Kill all Docker containers
+  shell: "docker kill $(docker ps -q)"
+  ignore_errors: yes
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave
+
+- name: Remove all Docker containers
+  shell: "docker rm $(docker ps -a -q)"
+  ignore_errors: yes
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave
+
+- name: Remove all Docker images
+  shell: "docker rmi $(docker images -q)"
+  ignore_errors: yes
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave
+
+- name: Kill any Thermos processes
+  shell: "pkill -9 -f thermos"
+  ignore_errors: yes
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave
+
+- name: Bring the Mesos slave process back up (if purging slave state)
+  service:
+    name: mesos-slave
+    state: started
+  when: mesos_purge_slave_state_ensure_running
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave
+
+- name: Ensure that the Mesos slave is monitored by Monit
+  monit:
+    name: mesos-slave
+    state: monitored
+  ignore_errors: yes
+  when: mesos_purge_slave_state_ensure_running
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave

@@ -1,0 +1,45 @@
+---
+- name: Install Git
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - git
+    - git-core
+  tags:
+    - git
+
+- name: Copy git-lfs package repo installation script
+  copy:
+    src: script.rpm.sh
+    dest: /usr/sbin/install-git-lfs
+    mode: 0700
+  when: git_install_lfs
+  tags:
+    - git
+    - git-lfs
+
+- name: Execute git-lfs package repo installation script
+  shell: /usr/sbin/install-git-lfs && touch /var/git-lfs-installed
+  args:
+    creates: /var/git-lfs-installed
+  when: git_install_lfs
+  tags:
+    - git
+    - git-lfs
+
+- name: Install git-lfs
+  package:
+    name: git-lfs
+    state: present
+  when: git_install_lfs
+  tags:
+    - git
+    - git-lfs
+
+- name: Ensure that 'git lfs install' has been executed
+  shell: git lfs install
+  when: git_install_lfs
+  tags:
+    - git
+    - git-lfs

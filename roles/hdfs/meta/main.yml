@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  author: Steve Salevan <steve@spi.ne>
+  description: Installs and configures HDFS
+  license: MIT
+  min_ansible_version: 1.4
+
+dependencies:
+  - hadoop_config

@@ -1,0 +1,28 @@
+#!/bin/bash
+# Runs a shell command a group of servers tagged with the provided Ansible group.
+
+set -eo pipefail
+
+if [ $# -lt 3 ]; then
+  echo
+  echo "Runs a shell command a group of servers tagged with the provided Ansible group."
+  echo "Usage: ./runcmd DC ANSIBLE_GROUP 'CMD'"
+  exit -1
+fi
+
+DIR=$(git rev-parse --show-toplevel)
+
+source ${DIR}/utils/spinedc
+
+GROUP="${1}"
+shift
+
+if [ "${GROUP}" != "all" ]; then
+  GROUP="tag_ansible_group_${GROUP}"
+fi
+
+echo " - Executing shell command across group ${GROUP} in ${SPINE_DATACENTER}: ${@}"
+
+ESCAPED_CMD=$(echo "${@}" | sed 's/=/\\=/')
+
+${DIR}/a "${SPINE_DATACENTER}" "${GROUP}" -s -m shell -a "${ESCAPED_CMD}"

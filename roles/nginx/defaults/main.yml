@@ -1,0 +1,7 @@
+---
+nginx_connections: 1024
+nginx_user: nginx
+
+nginx_signing_key: http://nginx.org/keys/nginx_signing.key
+
+worker_rlimit_nofile: 2000000

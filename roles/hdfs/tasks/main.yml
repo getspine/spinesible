@@ -1,0 +1,54 @@
+---
+- name: Install HDFS NameNode package (if desired)
+  yum:
+    name: hadoop-hdfs-namenode
+    state: present
+  when: "'namenode' in hdfs_roles"
+  tags:
+    - hdfs
+    - hdfs_namenode
+
+- name: Install HDFS DataNode package (if desired)
+  yum:
+    name: hadoop-hdfs-datanode
+    state: present
+  when: "'datanode' in hdfs_roles"
+  tags:
+    - hdfs
+    - hdfs_datanode
+
+- name: Ensure that NameNode firewall ports are open (if desired)
+  firewalld:
+    port: "{{ item.port }}/{{ item.type }}"
+    state: enabled
+    permanent: yes
+  with_items: "{{ hdfs_namenode_firewall_ports }}"
+  when: "'namenode' in hdfs_roles and hdfs_update_firewall"
+  ignore_errors: yes
+  tags:
+    - hdfs
+    - hdfs_namenode
+    - hdfs_firewall
+
+- name: Ensure that DataNode firewall ports are open (if desired)
+  firewalld:
+    port: "{{ item.port }}/{{ item.type }}"
+    state: enabled
+    permanent: yes
+  with_items: "{{ hdfs_datanode_firewall_ports }}"
+  when: "'datanode' in hdfs_roles and hdfs_update_firewall"
+  ignore_errors: yes
+  tags:
+    - hdfs
+    - hdfs_datanode
+    - hdfs_firewall
+
+- name: Format NameNode if not already formatted
+  command: hadoop namenode -format
+  args:
+    creates: "{{ hadoop_config_dfs_name_dir[0] | url_to_path }}/current/VERSION"
+  become: yes
+  become_user: hdfs
+  tags:
+    - hdfs
+    - hdfs_namenode

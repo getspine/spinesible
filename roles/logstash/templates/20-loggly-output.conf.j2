@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+# Sends logs to Loggly.
+
+filter{
+   mutate{
+      add_field => ["timestamp", "%{@timestamp}"]
+   }
+}
+output{
+   loggly{
+      key => "{{ loggly_customer_token }}"
+      tag => "logstash"
+      host => "logs-01.loggly.com"
+      proto => "https"
+   }
+}

@@ -1,0 +1,5 @@
+---
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat" and ansible_distribution != "Fedora"
+  tags:
+    - epel

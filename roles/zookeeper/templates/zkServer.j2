@@ -1,0 +1,16 @@
+#!/bin/bash
+# {{ ansible_managed }}
+
+# Provides Ansible-wise configuration to the ZooKeeper startup script.
+{% if zookeeper_jmx_local_only %}
+export JMXLOCALONLY=true
+{% endif %}
+{% if zookeeper_jmx_disable %}
+export JMXDISABLE=true
+{% endif %}
+export JAVA_HOME="{{ zookeeper_jvm_home }}"
+export SERVER_JVMFLAGS="{{ zookeeper_jvm_extra_flags }}"
+export ZOO_zookeeper_log_dir='{{ zookeeper_log_dir }}'
+export ZOOPIDFILE='/var/run/zookeeper/zookeeper.pid'
+
+{{ zookeeper_source_dir }}/zookeeper-{{ zookeeper_version }}/bin/zkServer.sh "$@"

@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+
+check process sshd matching "/usr/sbin/sshd -D"
+  start program = "/bin/systemctl start sshd.service"
+  stop program = "/bin/systemctl stop sshd.service"
+  if failed port {{ sshd_port }} protocol ssh then restart
+  if 5 restarts within 5 cycles then timeout

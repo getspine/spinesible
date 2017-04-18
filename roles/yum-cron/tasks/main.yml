@@ -1,0 +1,63 @@
+---
+- name: Ensures that yum itself is up2date
+  yum:
+    name: yum
+    state: latest
+  tags:
+    - yum-cron
+
+- name: Ensures cron(ie) installed
+  yum:
+    name: cronie
+    state: present
+  tags:
+    - yum-cron
+
+- name: Ensures cron(ie) service is running
+  service:
+    name: crond
+    state: started
+    enabled: yes
+  tags:
+    - yum-cron
+
+- name: Ensures that yum-cron is installed
+  yum:
+    name: yum-cron
+    state: latest
+  tags:
+    - yum-cron
+
+- name: Configure yum-cron.conf
+  template:
+    src: yum-cron.conf.j2
+    dest: /etc/yum/yum-cron.conf
+  notify:
+    - Restart yum-cron
+  tags:
+    - yum-cron
+
+- name: Configure yum-cron-hourly.conf
+  template:
+    src: yum-cron-hourly.conf.j2
+    dest: /etc/yum/yum-cron-hourly.conf
+  notify:
+    - Restart yum-cron
+  tags:
+    - yum-cron
+
+- name: Ensures yum-cron service is running
+  service:
+    name: yum-cron
+    state: started
+    enabled: yes
+  tags:
+    - yum-cron
+
+- name: Configure yum-cron-clean to run a yum clean regularly
+  template:
+    src: yum_clean_cron.j2
+    dest: "/etc/cron.{{ yum_cron_clean_when }}/yum_clean_cron"
+    mode: 0755
+  tags:
+    - yum-cron

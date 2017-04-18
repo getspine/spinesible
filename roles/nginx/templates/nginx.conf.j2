@@ -1,0 +1,79 @@
+# {{ ansible_managed }}
+
+user                 {{ nginx_user }} {{ nginx_user }};
+worker_processes     {{ ansible_processor_cores }};
+worker_rlimit_nofile {{ worker_rlimit_nofile }};
+
+
+events {
+
+  worker_connections   {{ nginx_connections }};
+  use epoll;
+
+}
+
+
+http {
+
+  # Includes MIME handling and sets a default MIME type.
+  include       mime.types;
+  default_type  application/octet-stream;
+
+  # Sets a default logging format.
+  log_format main '[$time_local] <$status> $request $remote_addr - '
+                  '$remote_user $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent"';
+
+  # Sets a logging format for capturing POST data.
+  log_format postdata '"$request_body"';
+
+  # Buffering access log writes for better IO speeds.
+  access_log /var/log/nginx/access.log main buffer=16k;
+  error_log  /var/log/nginx/error.log;
+
+  # Enables gzip compression on compliant MIME types.
+  gzip              on;
+  gzip_http_version 1.1;
+  gzip_comp_level   2;
+  gzip_types        text/plain text/html text/css
+                    application/x-javascript text/xml
+                    application/xml application/xml+rss
+                    text/javascript;
+
+  # Caches information about open FDs, freqently accessed files.
+  open_file_cache          max=200000 inactive=20s; 
+  open_file_cache_valid    30s; 
+  open_file_cache_min_uses 2;
+  open_file_cache_errors   on;
+
+  # Sets various Linux-wise performance settings.
+  sendfile    on;
+  tcp_nopush  on;
+  tcp_nodelay on; 
+
+  # Disables reporting of Nginx version in header responses.
+  server_tokens off;
+
+  # Enables Librato monitoring.
+  server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    location /health {
+      return 200;
+      access_log off;
+    }
+
+    location /basic_status {
+      stub_status on;
+      access_log  off;
+
+      allow 127.0.0.1;
+      deny  all;
+    }
+  }
+
+  # Includes module-specific configurations.
+  include /etc/nginx/conf.d/*.conf;
+
+}

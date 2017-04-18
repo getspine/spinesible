@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+# Ensures that SELinux settings for OpenVPN are applied.
+
+module spine_openvpn 1.0;
+
+require {
+  type openvpn_t;
+  type unreserved_port_t;
+  class udp_socket name_bind;
+}
+
+#============= openvpn_t ==============
+
+allow openvpn_t unreserved_port_t:udp_socket name_bind;

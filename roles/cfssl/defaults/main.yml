@@ -1,0 +1,41 @@
+---
+cfssl_install: yes
+
+cfssl_go_target: github.com/cloudflare/cfssl/cmd/cfssl
+
+cfssl_user: cfssl
+cfssl_group: "{{ cfssl_user }}"
+
+cfssl_listen_address: 0.0.0.0
+cfssl_listen_port: 8888
+
+cfssl_ca_cert: ""
+cfssl_ca_key: ""
+
+cfssl_ca_cert_loc: /etc/cfssl/ca-cert.pem
+cfssl_ca_key_loc: /etc/cfssl/ca-key.pem
+
+cfssl_loglevel: 0
+
+cfssl_auth_token: CHANGEME
+
+cfssl_config:
+  signing:
+    profiles:
+      CA:
+        usages:
+          - signing
+        auth_key: ca-auth
+        expiry: 8760h
+    default:
+      usages:
+        - key encipherment
+        - server auth
+        - client auth
+      expiry: 8760h
+  auth_keys:
+    ca-auth:
+      type: standard
+      key: "{{ cfssl_auth_token }}"
+  remotes:
+    localhost: "127.0.0.1"

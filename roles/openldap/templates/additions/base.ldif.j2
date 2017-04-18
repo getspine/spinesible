@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+# Establishes a base LDAP DN.
+
+dn: {{ openldap_dc }}
+objectClass: dcObject
+objectClass: organization
+o: {{ openldap_organization }}
+dc: {{ openldap_domain_name.split('.')[0] }}
+
+dn: cn={{ openldap_root_user }},{{ openldap_dc }}
+objectClass: organizationalRole
+cn: {{ openldap_root_user }}

@@ -1,0 +1,27 @@
+---
+- name: Establishes and maintains Elasticsearch master nodes
+  hosts: tag_ansible_group_es_master
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  vars_files:
+    - "dc_config/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+    - "dc_vars/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+
+  vars:
+    elasticsearch_cluster_name: "spinesible-{{ spine_datacenter }}"
+    elasticsearch_discovery_zen_minimum_master_nodes: 1
+    elasticsearch_discovery_zen_ping_multicast_enabled: no
+    elasticsearch_memory_bootstrap_mlockall: yes
+    elasticsearch_node_data: no
+    elasticsearch_node_master: yes
+    elasticsearch_plugin_aws_region: "{{ spine_datacenter }}"
+    elasticsearch_plugin_aws_tag_filters:
+      es_cluster: "spinesible-{{ spine_datacenter }}"
+      spine_section: backbone
+    elasticsearch_should_format_volumes: yes
+    elasticsearch_total_ram_pct: 50.0
+
+  roles:
+    - elasticsearch

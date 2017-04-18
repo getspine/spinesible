@@ -1,0 +1,47 @@
+[libdefaults]
+  default_realm = {{ kdc_realm_name | upper() }}
+
+[kdcdefaults]
+  kdc_ports = {{ kdc_port }}
+  kdc_tcp_ports = {{ kdc_port }}
+
+[realms]
+  {{ kdc_realm_name | upper() }} = {
+    acl_file = {{ kadm5_acl_path }}
+    admin_keytab = /var/kerberos/krb5kdc/kadm5.keytab
+{% if krb_enable_ldap %}
+    database_module = {{ kdc_realm_name | upper() }}
+{% endif %}
+    default_domain = {{ kdc_realm_name | lower() }}
+    dict_file = /usr/share/dict/words
+    max_life = {{ kdc_ticket_max_life }}
+    max_renewable_life = {{ kdc_ticket_max_renewable_life }}
+    supported_enctypes = {{ kdc_supported_enctypes }}
+  }
+
+[domain_realm]
+  .{{ kdc_realm_name | lower() }} = {{ kdc_realm_name | upper() }}
+  {{ kdc_realm_name | lower() }} = {{ kdc_realm_name | upper() }}
+
+{% if krb_enable_ldap %}
+[dbdefaults]
+  ldap_kerberos_container_dn = {{ krb_ldap_container_dn }}
+
+[dbmodules]
+  {{ kdc_realm_name | upper() }} = {
+    db_library = kldap
+
+    ldap_kerberos_container_dn = {{ krb_ldap_container_dn }}
+    ldap_kdc_dn = {{ krb_ldap_kdc_dn }}
+
+    # this object needs to have read rights on
+    # the realm container, principal container and realm sub-trees
+    ldap_kadmind_dn = {{ krb_ldap_kadmind_dn }}
+
+    # this object needs to have read and write rights on
+    # the realm container, principal container and realm sub-trees
+    ldap_service_password_file = /var/kerberos/krb5kdc/{{ kdc_realm_name | upper() }}.ldap_service_pw
+    ldap_servers = {{ krb_ldap_servers }}
+    ldap_conns_per_server = {{ krb_ldap_conns_per_server }}
+  }
+{% endif %}

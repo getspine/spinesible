@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  author: Steve Salevan <steve@spi.ne>
+  description: Installs and configures the Thermos executor and observer used by the Aurora Mesos scheduler
+  license: MIT
+  min_ansible_version: 1.4
+  categories:
+    - cloud
+    - system

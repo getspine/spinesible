@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+# Establishes a cfssl server.
+
+[Unit]
+Description=cfssl certificate service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/cfssl serve \
+  -address={{ cfssl_listen_address }} \
+  -port={{ cfssl_listen_port }} \
+  -ca={{ cfssl_ca_cert_loc }} \
+  -ca-key={{ cfssl_ca_key_loc }} \
+  -config=/etc/cfssl/production.json \
+  -loglevel={{ cfssl_loglevel }} \
+  -tls-cert={{ cfssl_tls_cert_loc }} \
+  -tls-key={{ cfssl_tls_key_loc }}
+User={{ cfssl_user }}
+Restart=always
+StartLimitInterval=0
+RestartSec=15
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

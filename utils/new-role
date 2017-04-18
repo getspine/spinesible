@@ -1,0 +1,29 @@
+#!/bin/bash
+
+DIR="$(git rev-parse --show-toplevel)"
+NAME="$1"
+
+function usage() {
+  echo "Usage:"
+  echo "  ./new-role ROLE-NAME"
+  exit 1
+}
+
+if [ -z "$NAME" ];then
+  usage
+fi
+
+ROLEDIR="$DIR/roles/$NAME"
+
+if [ -d $ROLEDIR ]; then
+  echo "role \"$ROLEDIR\" already exists!"
+  exit 1
+fi
+
+cp -r $DIR/utils/role_template $ROLEDIR
+
+for file in $(find $ROLEDIR);do
+  if [ -f $file ]; then
+    sed -i -e s/ROLE-NAME/$NAME/g $file
+  fi
+done

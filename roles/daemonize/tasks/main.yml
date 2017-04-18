@@ -1,0 +1,10 @@
+---
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat"
+  tags:
+    - daemonize
+
+- include: build.yml
+  when: daemonize_should_build
+  tags:
+    - daemonize

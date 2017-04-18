@@ -1,0 +1,62 @@
+---
+hbase_site: main
+
+hbase_master: "{{ hostvars | zk_private_ips(groups[hbase_master_group]) | join(',') }}"
+hbase_master_group: tag_ansible_group_hbase
+
+hbase_regionserver_hosts: "{{ hostvars | zk_private_ips(groups[hbase_regionserver_hosts_group]) | join(',') }}"
+hbase_regionserver_hosts_group: tag_ansible_group_hbase
+
+hbase_zookeeper_quorum: "{{ hostvars | zk_private_ips(groups[hbase_zookeeper_quorum_group]) | join(',') }}"
+hbase_zookeeper_quorum_group: tag_ansible_group_hbase
+
+hbase_extra_properties: {}
+
+hbase_namenode_hostname: 127.0.0.1
+hbase_hdfs_root_dir: /hbase
+
+hbase_update_route53: yes
+hbase_master_route53_zone: hbase.spi.ne.
+hbase_master_route53_vpc_id: changeme
+hbase_master_ec2_region: us-east-1
+
+hbase_config_files:
+  - hadoop-metrics2-hbase.properties
+  - hbase-env.sh
+  - hbase-policy.xml
+  - hbase-site.xml
+  - log4j.properties
+  - regionservers
+
+hbase_regionserver_port: 60020
+hbase_regionserver_info_port: 60030
+
+hbase_update_firewall: no
+hbase_regionserver_firewall_ports:
+  - port: "{{ hbase_regionserver_port }}"
+    type: tcp
+  - port: "{{ hbase_regionserver_info_port }}"
+    type: tcp
+
+hbase_master_port: 60000
+hbase_master_info_port: 60010
+
+hbase_master_firewall_ports:
+  - port: "{{ hbase_master_port }}"
+    type: tcp
+  - port: "{{ hbase_master_info_port }}"
+    type: tcp
+
+hbase_failure_cycles_before_restart: 5
+
+hbase_regionserver_packages:
+  - hbase-regionserver
+
+hbase_master_packages:
+  - hbase-master
+  - hbase-rest
+  - hbase-thrift
+
+hbase_roles:
+  - regionserver
+  - master

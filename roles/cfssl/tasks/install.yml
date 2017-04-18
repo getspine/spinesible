@@ -1,0 +1,28 @@
+---
+- name: Clear built cfssl binary
+  file:
+    path: /usr/local/gopath/bin/cfssl
+    state: absent
+  tags:
+    - cfssl
+    - cfssl_install
+
+- name: Build cfssl binary
+  shell: "/usr/local/go/bin/go get -u {{ cfssl_go_target }}"
+  environment:
+    GOPATH: "{{ golang_gopath }}"
+  notify:
+    - Restart cfssl
+  tags:
+    - cfssl
+    - cfssl_install
+
+- name: Hard link cfssl binary into /usr/local/sbin
+  file:
+    path: /usr/local/sbin/cfssl
+    src: /usr/local/gopath/bin/cfssl
+    state: hard
+    force: yes
+  tags:
+    - cfssl
+    - cfssl_install

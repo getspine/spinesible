@@ -1,0 +1,6 @@
+---
+ssl_certs_mode: "0600"
+ssl_keys_to_include: []
+ssl_certs_to_include: []
+ssl_ca_certs_to_include: []
+ssl_cert_bundles_to_include: []

@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# Ensures that daemon running the Presto server process is monitored.
+
+check process presto matching {{ presto_dir }}/presto-server-{{ presto_version }}
+  if failed host {{ presto_listen_host }} port {{ presto_http_port }} type tcp for {{ presto_failure_cycles_before_restart }} cycles then restart
+  start program = "/bin/systemctl start presto.service"
+  stop program = "/bin/systemctl stop presto.service"

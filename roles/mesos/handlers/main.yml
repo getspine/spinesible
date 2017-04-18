@@ -1,0 +1,26 @@
+---
+- include: ../../monit/handlers/main.yml
+
+- name: Restart Mesos master via Monit
+  monit:
+    name: mesos-master
+    state: restarted
+  when: '"master" in mesos_roles'
+  retries: 10
+  delay: 1
+  ignore_errors: yes
+  tags:
+    - mesos
+    - mesos_master
+
+- name: Restart Mesos slave via Monit
+  monit:
+    name: mesos-slave
+    state: restarted
+  when: '"slave" in mesos_roles'
+  retries: 10
+  delay: 1
+  ignore_errors: yes
+  tags:
+    - mesos
+    - mesos_slave

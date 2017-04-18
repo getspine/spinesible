@@ -1,0 +1,86 @@
+---
+mesos_cluster_name: main
+mesos_version: 0.25.0
+
+mesos_restart: no
+
+mesos_install_only: no
+mesos_purge_slave_state: no
+mesos_purge_slave_state_ensure_running: yes
+
+mesos_roles:
+  - master
+  - slave
+
+mesos_containerizers:
+  - mesos
+
+mesos_isolators:
+  - cgroups/cpu
+  - cgroups/mem
+
+mesos_slave_attributes:
+  - "architecture:{{ ec2_architecture }}"
+  - "ec2_availability_zone:{{ ec2_placement }}"
+  - "ec2_instance_type:{{ ec2_instance_type }}"
+  - "ec2_region:{{ ec2_region }}"
+  - "host:{{ ec2_private_ip_address }}"
+  - "hostname:{{ ec2_tag_hostname }}"
+  - "id:{{ ec2_id }}"
+  - "nerve_type:{{ ec2_tag_spine_nerve_type }}"
+  - "resource_type:{{ ec2_tag_spine_resource_type }}"
+  - "spine_section:{{ ec2_tag_spine_section }}"
+
+mesos_slave_resources:
+  - "cpus:{{ ansible_processor_vcpus }}"
+  - "mem:{{ ansible_memtotal_mb - 128 }}"
+
+mesos_extra_slave_vars: {}
+mesos_extra_master_vars: {}
+
+mesos_executor_timeout: 5mins
+
+mesos_hostname: "{{ ec2_tag_Name }}.mesos.spi.ne"
+mesos_ip: "{{ ec2_private_ip_address }}"
+mesos_advertise_ip: "{{ ec2_private_ip_address }}"
+
+mesos_master_port: 5050
+mesos_slave_port: 5051
+
+mesos_master_firewall_ports:
+  - type: tcp
+    port: 5050
+
+mesos_slave_firewall_ports:
+  - type: tcp
+    port: 5051
+
+mesos_slave_gc_delay: 0mins
+
+mesos_base_user: spine
+mesos_base_group: "{{ mesos_base_user }}"
+
+mesos_cgroups_hierarchy_dir: /sys/fs/cgroup
+mesos_cgroups_root: system.slice/mesos-slave.service
+mesos_conf_dir: /etc/mesos
+mesos_log_dir: /var/log/mesos
+mesos_state_dir: /var/run/mesos
+mesos_work_dir: /var/lib/mesos
+
+mesos_quorum_size: 1
+mesos_ulimit_options: "-n 8192"
+
+mesos_repo_rpm_el6: https://repos.mesosphere.io/el/6/noarch/RPMS/mesosphere-el-repo-6-2.noarch.rpm
+mesos_repo_rpm_el7: https://repos.mesosphere.com/el/7/noarch/RPMS/mesosphere-el-repo-7-1.noarch.rpm
+
+mesos_zookeeper_quorum: "{{ hostvars | private_ips(groups[mesos_zookeeper_quorum_group]) | join(',') }}"
+mesos_zookeeper_quorum_group: tag_ansible_group_aurora
+mesos_zookeeper_port: 2181
+
+mesos_zookeeper_username: ""
+mesos_zookeeper_password: ""
+mesos_zookeeper_znode: "/mesos/{{ mesos_cluster_name }}/master"
+
+mesos_debian_key_id: E56151BF
+
+mesos_failure_cycles_before_restart: 2

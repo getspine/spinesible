@@ -1,0 +1,18 @@
+---
+- name: Import nginx signing key
+  rpm_key:
+    key: "{{ nginx_signing_key }}"
+    state: present
+
+- name: Install nginx Yum repository
+  template:
+    src: nginx.repo.j2
+    dest: /etc/yum.repos.d/nginx.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install nginx RPM
+  yum:
+    name: nginx
+    state: present

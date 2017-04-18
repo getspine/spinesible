@@ -1,0 +1,24 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# Restores an S3 backup of the Kerberos KDC database.
+
+set -euo pipefail
+
+if [ $# -lt 1 ]; then
+  echo
+  echo "Runs ansible with the provided arguments."
+  echo "Usage: kdc_restore_from_s3 TIMESTAMP"
+  exit 1
+fi
+
+TIMESTAMP="${1}"
+S3_BUCKET='{{ kdc_backups_s3_bucket }}'
+KMS_KEY='{{ kdc_backups_kms_key }}'
+
+echo " - Restoring Kerberos KDC backup: ${TIMESTAMP}"
+
+aws s3 cp --sse aws:kms --sse-kms-key-id ${KMS_KEY} "s3://${S3_BUCKET}/backups/krb5kdc/${TIMESTAMP}.dump" "/tmp/krb5kdc-${TIMESTAMP}.dump"
+kdb5_util load -verbose "/tmp/krb5kdc-${TIMESTAMP}.dump"
+rm -rf "/tmp/krb5kdc-${TIMESTAMP}.dump"
+
+echo " - Restore succeeded: ${TIMESTAMP}"

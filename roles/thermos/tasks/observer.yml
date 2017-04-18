@@ -1,0 +1,17 @@
+---
+- name: Ensure that the Thermos observer's sysconfig is present
+  template:
+    src: thermos-observer.sysconfig.j2
+    dest: /etc/sysconfig/thermos-observer
+    mode: 0644
+  tags:
+    - thermos
+    - thermos_observer
+
+- name: Ensure that the Thermos observer daemon is running
+  service:
+    name: thermos
+    state: "{% if thermos_should_upgrade %}restarted{% else %}started{% endif %}"
+  tags:
+    - thermos
+    - thermos_observer

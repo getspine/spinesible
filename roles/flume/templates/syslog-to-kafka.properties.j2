@@ -1,0 +1,23 @@
+flume1.sources  = syslog1
+flume1.channels = syslog-channel-1
+flume1.sinks    = kafka-sink-1
+
+flume1.sources.syslog1.type = syslogtcp
+flume1.sources.syslog1.port = 5140
+flume1.sources.syslog1.host = 0.0.0.0
+flume1.sources.syslog1.keepFields = Timestamp Hostname
+flume1.sources.syslog1.channels = syslog-channel-1
+
+flume1.sinks.kafka-sink-1.channel = syslog-channel-1
+flume1.sinks.kafka-sink-1.type = org.apache.flume.sink.kafka.KafkaSink
+flume1.sinks.kafka-sink-1.batchSize = 100
+flume1.sinks.kafka-sink-1.key = timestamp
+flume1.sinks.kafka-sink-1.brokerList = {{ kafka_hosts }}
+#flume1.sinks.kafka-sink-1.serializer = org.apache.flume.sink.kafka.SyslogToJSONSerializer
+flume1.sinks.kafka-sink-1.topic = spine.containerlogs
+
+flume1.channels.syslog-channel-1.type = memory
+flume1.channels.syslog-channel-1.capacity = 10000
+flume1.channels.syslog-channel-1.transactionCapacity = 10000
+flume1.channels.syslog-channel-1.byteCapacityBufferPercentage = 20
+flume1.channels.syslog-channel-1.byteCapacity = 8000000

@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+
+SLAPD_URLS="'{{ openldap_urls | join(' ') }}'"
+
+{% if openldap_slapd_options|length > 0 %}
+SLAPD_OPTIONS="{{ openldap_slapd_options | join(' ') }}"
+{% endif %}
+
+{% if openldap_enable_kerberos %}
+# Keytab location for GSSAPI Kerberos authentication
+KRB5_KTNAME="FILE:{{ openldap_kerberos_keytab_file }}"
+{% endif %}

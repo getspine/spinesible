@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+# systemd service supporting the Mesos slave process.
+
+[Unit]
+Description=Mesos slave process
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/mesos-slave-startup
+KillMode=process
+Restart=always
+StartLimitInterval=0
+RestartSec=5
+LimitNOFILE=infinity
+TasksMax=infinity
+Delegate=true
+CPUAccounting=true
+MemoryAccounting=true
+
+[Install]
+WantedBy=multi-user.target

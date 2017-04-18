@@ -1,0 +1,31 @@
+#!/bin/bash
+# Runs bootstrapping playbooks against all hosts.
+
+if [ $# -lt 2 ]; then
+  echo
+  echo "Pushes new SSH keys against the specified group."
+  echo "Usage: ./ssh_push DC ANSIBLE_GROUP"
+  exit 1
+fi
+
+DIR=$(git rev-parse --show-toplevel)
+
+source ${DIR}/utils/spinedc
+source ${DIR}/env/bin/activate
+
+export ANSIBLE_GROUP="${1}"
+export ANSIBLE_USER="${2-ansibler}"
+export ANSIBLE_SHOULD_SUDO="${3-True}"
+export ANSIBLE_SHOULD_SET_HOSTNAME="${4-False}"
+export ANSIBLE_SHOULD_CREATE_BASE_USER="${5-False}"
+export ANSIBLE_SHOULD_FORMAT_VOLUMES="${6-False}"
+export ANSIBLE_HOSTNAME="${7}"
+export ANSIBLE_FORMAT_VOLUMES="${8}"
+
+# Disables host key checking to support headless provisioning.
+export ANSIBLE_HOST_KEY_CHECKING=False
+
+# Purges any local EC2 cache to ensure that new nodes are detected.
+export PURGE_EC2_CACHE="true"
+
+ansible-playbook -u ansibler -i ./inventory/ec2 bootstrap.yml --tags=ssh_keys

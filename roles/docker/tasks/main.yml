@@ -1,0 +1,73 @@
+---
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat"
+  tags:
+    - docker
+
+- name: Add Docker GC utility
+  copy:
+    src: "{{ item }}.sh"
+    dest: "/usr/sbin/{{ item }}"
+    mode: 0755
+  when: docker_enable_gc
+  with_items:
+    - dockerpurge
+  tags:
+    - docker
+    - docker_gc
+
+- name: Ensure Docker GC runs every 10 minutes
+  cron:
+    name: Run docker-gc
+    minute: "*/10"
+    user: root
+    job: /usr/sbin/dockerpurge
+  when: docker_enable_gc
+  tags:
+    - docker
+    - docker_gc
+
+- name: Install Docker Python libraries to enable Ansible integration
+  pip:
+    name: docker-py
+    state: present
+    executable: "{{ python_install_dir }}/bin/pip2.7"
+  tags:
+    - docker
+
+- name: Configure docker service
+  template:
+    src: docker.sysconfig.j2
+    dest: /etc/sysconfig/docker
+  notify:
+    - Restart docker
+  tags:
+    - docker
+
+- name: Ensure that the Docker service is running
+  service:
+    name: docker
+    state: running
+    enabled: yes
+  tags:
+    - docker
+    - docker_redock
+
+- name: Complete the docking procedure by logging into the Docker Hub
+  command: "docker login --email='{{ docker_email }}' --username='{{ docker_username }}' --password='{{ docker_password }}'"
+  args:
+    creates: "{{ ansible_env['HOME'] }}/.dockercfg"
+  when: docker_authenticate
+  tags:
+    - docker
+    - docker_redock
+
+- name: Ensure that the Docker Unix domain socket allows docker group access
+  file:
+    path: /var/run/docker.sock
+    owner: root
+    group: docker
+    mode: 0660
+  tags:
+    - docker
+    - docker_socket

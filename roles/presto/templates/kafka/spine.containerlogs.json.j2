@@ -1,0 +1,35 @@
+{
+  "tableName": "containerlogs",
+  "schemaName": "spine",
+  "topicName": "spine.containerlogs",
+  "message": {
+    "dataFormat": "json",
+    "fields": [
+      {
+        "name": "id",
+        "mapping": "id",
+        "type": "BIGINT"
+      },
+      {
+        "name": "ts",
+        "mapping": "ts",
+        "type": "BIGINT"
+      },
+      {
+        "name": "host",
+        "mapping": "host",
+        "type": "VARCHAR"
+      },
+      {
+        "name": "tag",
+        "mapping": "tag",
+        "type": "VARCHAR"
+      },
+      {
+        "name": "body",
+        "mapping": "body",
+        "type": "VARCHAR"
+      }
+    ]
+  }
+}

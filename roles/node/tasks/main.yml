@@ -1,0 +1,31 @@
+---
+- name: Ensure that the Nodesource RPM signing key is present
+  copy:
+    src: NODESOURCE-GPG-SIGNING-KEY-EL
+    dest: /etc/pki/rpm-gpg/NODESOURCE-GPG-SIGNING-KEY-EL
+    mode: 0644
+  tags:
+    - node
+
+- name: Ensure that the Nodesource RPM signing key is installed
+  rpm_key:
+    state: present
+    key: /etc/pki/rpm-gpg/NODESOURCE-GPG-SIGNING-KEY-EL
+  tags:
+    - node
+
+- name: Ensure that the Nodesource Yum repo is present
+  template:
+    src: nodesource-el.repo.j2
+    dest: /etc/yum.repos.d/nodesource-el.repo
+  tags:
+    - node
+
+- name: Ensure that Node packages are installed
+  yum:
+    name: "{{ item }}"
+    state: present
+    enablerepo: nodesource,nodesource-source
+  with_items: "{{ node_packages }}"
+  tags:
+    - node

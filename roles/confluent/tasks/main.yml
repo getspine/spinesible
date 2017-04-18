@@ -1,0 +1,14 @@
+---
+- name: Install Confluent repo GPG key
+  rpm_key:
+    key: "{{ confluent_gpg_key_url }}"
+    state: present
+  tags:
+    - confluent
+
+- name: Install Confluent Yum repository file
+  template:
+    src: confluent.repo.j2
+    dest: /etc/yum.repos.d/confluent.repo
+  tags:
+    - confluent

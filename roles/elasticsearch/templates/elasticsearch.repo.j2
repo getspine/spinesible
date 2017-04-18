@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+[elasticsearch]
+name=Elasticsearch repository
+baseurl={{ elasticsearch_yum_repo_url }}
+gpgcheck=1
+gpgkey={{ elasticsearch_gpg_key_url }}
+enabled=1

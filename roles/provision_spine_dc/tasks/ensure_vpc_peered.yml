@@ -1,0 +1,9 @@
+---
+- name: "Look up the definition for VPC: {{ spine_cur_vpc_name }}"
+  set_fact:
+    spine_cur_vpc: "{{ spine_vpcs[spine_cur_vpc_name] }}"
+
+- include: peer_vpc.yml
+  with_items: "{{ spine_cur_vpc.peerings }}"
+  loop_control:
+    loop_var: spine_peer_vpc_cidr_block

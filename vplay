@@ -1,0 +1,16 @@
+#!/bin/bash
+# Executes an Ansible playbook with all vault credentials.
+
+DIR=$(git rev-parse --show-toplevel)
+
+if [ $# -lt 2 ]; then
+  echo
+  echo "Executes an Ansible playbook with all vault credentials, using direct console password input."
+  echo "Usage: ./v DC [args]"
+  exit -1
+fi
+
+source ${DIR}/utils/spinedc
+source ${DIR}/env/bin/activate
+
+ansible-playbook --ask-vault-pass -e @vault/creds.yml -u ansibler -i ./inventory/ec2 "${@}"

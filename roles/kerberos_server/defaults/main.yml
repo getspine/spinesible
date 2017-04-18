@@ -1,0 +1,36 @@
+---
+kdc_acls:
+  - role: admin
+    acl: "*"
+  - role: "*/admin"
+    acl: "*"
+  - role: "*/*"
+    acl: i
+  - role: "*"
+    acl: i
+
+kdc_enable_s3_backups: yes
+kdc_backups_s3_bucket: CHANGEME
+kdc_backups_kms_key: CHANGEME
+
+kdc_supported_enctypes: aes256-cts-hmac-sha1-96 camellia256-cts-cmac aes128-cts-hmac-sha1-96 camellia128-cts-cmac
+
+kdc_realm_name: REALM.NAME.COM
+kdc_port: 88
+kdc_master_db_pass: CHANGEME
+create_kadmin_user: yes
+kadmin_user: CHANGEME
+kadmin_pass: CHANGEME
+krb_force_recreate_database: no
+
+krb_enable_ldap: no
+krb_ldap_service_password: ""
+krb_ldap_dn: CHANGEME
+krb_ldap_kdc_dn: CHANGEME
+krb_ldap_kadmind_dn: CHANGEME
+krb_ldap_protocol: ldaps://
+krb_ldap_servers: "{{ hostvars | private_hostnames(groups[krb_ldap_servers_group]) | with_prefix(ldap_protocol) | join(' ') }}"
+krb_ldap_servers_group: tag_ansible_group_aaa
+krb_ldap_conns_per_server: 5
+
+kdc_failure_cycles_before_restart: 3

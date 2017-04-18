@@ -1,0 +1,115 @@
+---
+- name: Install HBase package
+  yum:
+    name: hbase
+    state: latest
+  tags:
+    - hbase
+    - hbase_install
+
+- name: Install HBase regionserver packages (if a regionserver)
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ hbase_regionserver_packages }}"
+  when: "'regionserver' in hbase_roles"
+  tags:
+    - hbase
+    - hbase_install
+
+- name: Install HBase master packages (if a master)
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ hbase_master_packages }}"
+  when: "'master' in hbase_roles"
+  tags:
+    - hbase
+    - hbase_install
+
+- name: "Create HBase config directory for site: {{ hbase_site }}"
+  file:
+    path: "/etc/hbase/conf.{{ hbase_site }}"
+    state: directory
+    mode: 0755
+  tags:
+    - hbase
+
+- name: "Establish configuration for site: {{ hbase_site }}"
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/hbase/conf.{{ hbase_site }}/{{ item }}"
+    mode: 0644
+  register: hbase_configs
+  with_items: "{{ hbase_config_files }}"
+  tags:
+    - hbase
+    - hbase_config
+
+- name: "Set alternatives default for site configuration: {{ hbase_site }}"
+  alternatives:
+    name: hbase-conf
+    link: /etc/hbase/conf
+    path: "/etc/hbase/conf.{{ hbase_site }}"
+  tags:
+    - hbase
+    - hbase_config
+
+- name: Open HBase master firewall ports
+  firewalld:
+    port: "{{ item.port }}/{{ item.type }}"
+    state: enabled
+    permanent: yes
+    immediate: yes
+  with_items: "{{ hbase_master_firewall_ports }}"
+  when: "'master' in hbase_roles and hbase_update_firewall"
+  notify:
+    - Reload iptables configuration
+  ignore_errors: yes
+  tags:
+    - hbase
+    - hbase_firewall
+
+- name: Open HBase regionserver firewall ports
+  firewalld:
+    port: "{{ item.port }}/{{ item.type }}"
+    state: enabled
+    permanent: yes
+    immediate: yes
+  with_items: "{{ hbase_regionserver_firewall_ports }}"
+  when: "'regionserver' in hbase_roles and hbase_update_firewall"
+  notify:
+    - Reload iptables configuration
+  ignore_errors: yes
+  tags:
+    - hbase
+    - hbase_firewall
+
+- name: "Ensure HBase root directory is properly created/owned in HDFS"
+  shell: "{{ item }}"
+  with_items:
+    - "hadoop fs -mkdir -p hdfs://{{ hbase_namenode_hostname }}{{ hbase_hdfs_root_dir }}"
+    - "hadoop fs -chown hbase hdfs://{{ hbase_namenode_hostname }}{{ hbase_hdfs_root_dir }}"
+  when: "'master' in hbase_roles"
+  become: yes
+  become_user: hdfs
+  ignore_errors: yes
+  tags:
+    - hbase
+    - hbase_root_dir
+
+- name: Ensure that HBase services are running
+  service:
+    name: "hbase-{{ item }}"
+    state: "{% if hbase_configs.changed %}restarted{% else %}started{% endif %}"
+  with_items: "{{ hbase_roles }}"
+  tags:
+    - hbase
+    - hbase_config
+
+- include: route53.yml
+  when: hbase_update_route53
+  tags:
+    - hbase
+    - hbase_config
+    - hbase_dns

@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+# Establishes base indexes.
+
+dn: olcDatabase={2}hdb,cn=config
+add: olcDbIndex
+olcDbIndex: objectClass eq,pres
+-
+add: olcDbIndex
+olcDbIndex: ou,cn,mail,surname,givenname eq,pres,sub
+-
+add: olcDbIndex
+olcDbIndex: uidNumber,gidNumber,loginShell eq,pres
+-
+add: olcDbIndex
+olcDbIndex: uid,memberUid eq,pres,sub
+-
+add: olcDbIndex
+olcDbIndex: nisMapName,nisMapEntry eq,pres,sub

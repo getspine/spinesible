@@ -1,0 +1,42 @@
+---
+flume_roles:
+  - agent
+  - client
+
+flume_version: 1.7.0
+
+flume_agent_name: flume1
+flume_config_template: ./syslog-to-kafka.properties.j2
+
+flume_apache_mirror: http://mirror.cogentco.com/pub/apache
+
+flume_dir: /usr/lib/flume
+flume_config_dir: /etc/flume
+flume_data_dir: /var/lib/flume
+flume_log_dir: /var/log/flume
+
+flume_config_files:
+  - flume-conf.properties
+  - log4j.properties
+
+flume_update_firewall: no
+flume_firewall_ports:
+  - port: 5140
+    type: tcp
+
+flume_listeners_to_monitor:
+  - host: 0.0.0.0
+    port: 5140
+
+flume_user: flume
+flume_group: flume
+
+flume_log_level: INFO
+
+flume_ulimit_files: 32768
+
+flume_update_route53: no
+
+flume_failure_cycles_before_restart: 5
+
+flume_skip_install: no

@@ -1,0 +1,79 @@
+---
+- name: "Look up the definition for VPC: {{ spine_cur_vpc_name }}"
+  set_fact:
+    spine_cur_vpc: "{{ spine_vpcs[spine_cur_vpc_name] }}"
+
+- debug:
+    var: spine_cur_vpc
+
+- name: "Ensure that this VPC exists: {{ spine_cur_vpc_name }}"
+  ec2_vpc_net:
+    name: "{{ spine_cur_vpc.name }}"
+    state: present
+    cidr_block: "{{ spine_cur_vpc.cidr_block }}"
+    region: "{{ spine_datacenter }}"
+    profile: "{{ spine_datacenter }}"
+    tags: "{{ spine_cur_vpc.tags | to_json }}"
+    tenancy: default
+  register: spine_cur_vpc_response
+
+- debug:
+    var: spine_cur_vpc_response
+
+- name: "Obtain the ID of our current VPC: {{ spine_cur_vpc_name }}"
+  set_fact:
+    spine_cur_vpc_id: "{{ spine_cur_vpc_response.vpc.id }}"
+
+- name: "Ensure that there is an Internet gateway established on: {{ spine_cur_vpc_id }} (if desired)"
+  ec2_vpc_igw:
+    vpc_id: "{{ spine_cur_vpc_id }}"
+    region: "{{ spine_datacenter }}"
+    profile: "{{ spine_datacenter }}"
+    state: present
+  register: spine_cur_vpc_igw
+  when: spine_cur_vpc.internet_gateway
+
+- debug:
+    var: spine_cur_vpc_igw
+  when: spine_cur_vpc.internet_gateway
+
+- name: "Obtain the ID of the VPC's IGW for: {{ spine_cur_vpc_name }} (if desired)"
+  set_fact:
+    spine_cur_vpc_igw_id: "{{ spine_cur_vpc_igw.gateway_id }}"
+  when: spine_cur_vpc.internet_gateway
+
+- name: "Track the IGW id for: {{ spine_cur_vpc_name }} (if desired)"
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_vpc_to_igw_id#{{ spine_cur_vpc.cidr_block }}"
+    value: "{{ spine_cur_vpc_igw_id }}"
+  when: spine_cur_vpc.internet_gateway
+
+- name: "Ensure that there is an Internet gateway established on: {{ spine_cur_vpc_id }} (if desired)"
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_vpc_to_id#{{ spine_cur_vpc.cidr_block }}"
+    value: "{{ spine_cur_vpc_id }}"
+  when: spine_cur_vpc.internet_gateway
+
+- name: "Track the mapping between {{ spine_cur_vpc.cidr_block }}->{{ spine_cur_vpc_id }}"
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_vpc_to_id#{{ spine_cur_vpc.cidr_block }}"
+    value: "{{ spine_cur_vpc_id }}"
+
+- name: "Track the mapping between {{ spine_cur_vpc_id }}->{{ spine_cur_vpc.cidr_block }}"
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_id_to_vpc#{{ spine_cur_vpc_id }}"
+    value: "{{ spine_cur_vpc.cidr_block }}"
+
+- name: "Ensure that all VPC subnets are created for VPC: {{ spine_cur_vpc_name }}"
+  include: ensure_vpc_subnet_provisioned.yml
+  with_items: "{{ spine_cur_vpc.subnets }}"
+  loop_control:
+    loop_var: spine_cur_subnet

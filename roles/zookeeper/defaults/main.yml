@@ -1,0 +1,37 @@
+---
+zookeeper_client_port: 2181
+zookeeper_follower_port: 2888
+zookeeper_leader_election_port: 3888
+
+zookeeper_failure_cycles_before_restart: 2
+
+zookeeper_jmx_local_only: true
+zookeeper_jmx_disable: false
+
+zookeeper_jvm_extra_flags: ""
+zookeeper_jvm_home: /usr/lib/jvm/jre
+
+zookeeper_max_client_conns: 200
+
+zookeeper_apache_mirror_base: http://mirror.cogentco.com/pub/apache/
+
+zookeeper_num_init_ticks: 10
+zookeeper_num_sync_ticks: 5
+
+zookeeper_session_timeout_millis: 180000
+zookeeper_tick_time_millis: 5000
+
+zookeeper_site_name: main
+
+zookeeper_log_dir: /var/log/zookeeper
+zookeeper_state_dir: /var/lib/zookeeper
+zookeeper_source_dir: /usr/src
+
+# Used to determine which ZK hosts belong to this group.
+zookeeper_hosts: "{{ hostvars | zk_private_ips(groups[zookeeper_hosts_group]) | join(',') }}"
+zookeeper_hosts_group: tag_ansible_group_sdzk
+
+zookeeper_group: zookeeper
+zookeeper_user: zookeeper
+
+zookeeper_version: 3.4.8

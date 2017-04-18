@@ -1,0 +1,15 @@
+---
+krb_pkg:
+  - krb5-libs
+  - krb5-server
+  - krb5-pkinit-openssl
+  - krb5-server-ldap
+
+krb_service:
+  - krb5kdc
+  - kadmin
+
+kdc_conf_path: /var/kerberos/krb5kdc/kdc.conf
+kadm5_acl_path: /var/kerberos/krb5kdc/kadm5.acl
+
+krb_db_created_file: /var/kerberos/db_created

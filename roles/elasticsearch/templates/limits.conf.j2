@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+# /etc/security/limits.conf
+
+{{ elasticsearch_user }} - nofile 65535
+{{ elasticsearch_user }} - memlock unlimited
+root - memlock unlimited
+
+#EOF

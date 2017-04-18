@@ -1,0 +1,4 @@
+---
+node_version: 6.x
+node_packages:
+  - nodejs

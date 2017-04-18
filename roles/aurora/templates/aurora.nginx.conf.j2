@@ -1,0 +1,66 @@
+# {{ ansible_managed }}
+# Reverse proxies HTTPS to Aurora.
+
+
+# Redirects all HTTP traffic to HTTPS.
+server {
+
+  listen 80 default_server;
+  listen [::]:80 default_server;
+  server_name _;
+  return 301 https://$host$request_uri;
+
+}
+
+
+upstream localaurora {
+
+  server {{ ec2_private_ip_address }}:8081;
+
+}
+
+
+# Proxies HTTPS traffic to localhost:8081.
+server {
+
+  listen 443 ssl;
+  listen [::]:443 default_server;
+
+  server_name {{ ec2_tag_hostname }} {{ aurora_nginx_ssl_host }};
+
+  location = favicon.ico { access_log off; log_not_found off; }
+
+  ssl on;
+  ssl_certificate /etc/pki/tls/certs/collective.bundle.crt;
+  ssl_certificate_key /etc/pki/tls/private/collective.key;
+
+  ssl_session_timeout 5m;
+
+  # https://cipherli.st/
+  ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+  ssl_prefer_server_ciphers on;
+  ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+  ssl_ecdh_curve secp384r1;
+  ssl_session_cache shared:SSL:10m;
+  ssl_session_tickets off;
+  ssl_stapling on;
+  ssl_stapling_verify on;
+  resolver_timeout 5s;
+  add_header X-Frame-Options        DENY;
+  add_header X-Content-Type-Options nosniff;
+
+  location / {
+    proxy_pass http://localaurora;
+
+    # Uncomment to dump POST logs:
+    # access_log /var/log/nginx/post.log postdata;
+
+    proxy_set_header Bypass-Leader-Redirect yes;
+    proxy_set_header X-Bypass-Leader-Redirect yes;
+    proxy_set_header Host                   {{ ec2_private_ip_address }};
+    proxy_set_header X-Forwarded-For        $remote_addr;
+    proxy_set_header X-Forwarded-Host       {{ ec2_private_ip_address }}:8081;
+    proxy_set_header X-Forwarded-Server     {{ ec2_private_ip_address }};
+  }
+
+}

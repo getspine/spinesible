@@ -1,0 +1,48 @@
+---
+- name: Setup Presto user's group
+  group:
+    name: "{{ presto_group }}"
+    system: yes
+  tags:
+    - presto
+
+- name: Setup Presto user's user
+  user:
+    name: "{{ presto_user }}"
+    system: yes
+    group: "{{ presto_group }}"
+  tags:
+    - presto
+
+- name: Ensure that Presto directories are created
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: "{{ presto_user }}"
+    group: "{{ presto_group }}"
+  with_items:
+    - "{{ presto_dir }}"
+    - "{{ presto_config_dir }}"
+    - "{{ presto_config_dir }}/catalog"
+    - "{{ presto_config_dir }}/kafka"
+    - "{{ presto_log_dir }}"
+    - "{{ presto_data_dir }}"
+  tags:
+    - presto
+
+- name: Fetch Presto release tarball
+  get_url:
+    dest: "{{ presto_dir }}/presto-server-{{ presto_version }}.tar.gz"
+    url: "{{ presto_maven_url }}/{{ presto_artifact }}/{{ presto_version }}/presto-server-{{ presto_version }}.tar.gz"
+  tags:
+    - presto
+
+- name: Uncompress the Presto release tarball
+  unarchive:
+    src: "{{ presto_dir }}/presto-server-{{ presto_version }}.tar.gz"
+    copy: no
+    creates: "{{ presto_dir }}/presto-server-{{ presto_version }}"
+    dest: "{{ presto_dir }}"
+  tags:
+    - presto

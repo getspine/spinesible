@@ -1,0 +1,101 @@
+---
+- name: Copy over any supplemental base schemas
+  copy:
+    src: "{{ item }}.ldif"
+    dest: "{{ openldap_conf_dir }}/schema/{{ item }}.ldif"
+    owner: ldap
+    group: ldap
+    mode: 0644
+  with_items: "{{ openldap_supplemental_base_schemas }}"
+  tags:
+    - openldap
+    - openldap_server
+    - openldap_schema
+
+- name: Ensure that all requested base schemas are installed
+  shell: "ldapadd -Y EXTERNAL -H ldapi:/// -f {{ openldap_conf_dir }}/schema/{{ item }}.ldif && touch {{ openldap_state_dir }}/ldif_done/base_{{ item }}"
+  args:
+    creates: "{{ openldap_state_dir }}/ldif_done/base_{{ item }}"
+  ignore_errors: yes
+  with_items: "{{ openldap_base_schemas }}"
+  tags:
+    - openldap
+    - openldap_base_schema
+    - openldap_schema
+    - openldap_server
+
+- name: Template the LDIF files for all requested modifies
+  template:
+    src: "modifies/{{ item }}.ldif.j2"
+    dest: "{{ openldap_conf_dir }}/{{ openldap_ldif_path }}/modify_{{ item }}.ldif"
+  with_items: "{{ openldap_modifies }}"
+  tags:
+    - openldap
+    - openldap_schema
+    - openldap_modifies
+    - openldap_server
+
+- name: Ensure that all requested modifications are installed
+  shell: "ldapmodify -Y EXTERNAL -H ldapi:/// -f {{ openldap_conf_dir }}/{{ openldap_ldif_path }}/modify_{{ item }}.ldif && touch {{ openldap_state_dir }}/ldif_done/modify_{{ item }}"
+  args:
+    chdir: "{{ openldap_conf_dir }}/{{ openldap_ldif_path }}"
+    creates: "{{ openldap_state_dir }}/ldif_done/modify_{{ item }}"
+  ignore_errors: yes
+  with_items: "{{ openldap_modifies }}"
+  tags:
+    - openldap
+    - openldap_schema
+    - openldap_modifies
+    - openldap_server
+
+- name: Template the LDIF files for all requested schemas
+  template:
+    src: "additions/{{ item }}.ldif.j2"
+    dest: "{{ openldap_conf_dir }}/{{ openldap_ldif_path }}/add_{{ item }}.ldif"
+  with_items: "{{ openldap_additions }}"
+  tags:
+    - openldap
+    - openldap_schema
+    - openldap_additions
+    - openldap_server
+
+- name: Ensure that all requested LDAP additions are installed
+  shell: ldapadd -Y EXTERNAL -H ldapi:/// -x -D 'cn={{ openldap_root_user }},{{ openldap_dc }}' -f '{{ openldap_conf_dir }}/{{ openldap_ldif_path }}/add_{{ item }}.ldif' && touch '{{ openldap_state_dir }}/ldif_done/add_{{ item }}'
+  args:
+    chdir: "{{ openldap_conf_dir }}/{{ openldap_ldif_path }}"
+    creates: "{{ openldap_state_dir }}/ldif_done/add_{{ item }}"
+  ignore_errors: yes
+  with_items: "{{ openldap_additions }}"
+  tags:
+    - openldap
+    - openldap_schema
+    - openldap_additions
+    - openldap_server
+
+- name: Template the LDIF files for all requested users
+  template:
+    src: "users/{{ cur_user.user_type }}.ldif.j2"
+    dest: "{{ openldap_conf_dir }}/{{ openldap_ldif_path }}/useradd_{{ cur_user.username }}.ldif"
+  with_items: "{{ openldap_users_to_add }}"
+  loop_control:
+    loop_var: cur_user
+  tags:
+    - openldap
+    - openldap_schema
+    - openldap_server
+    - openldap_users
+
+- name: Ensure that all requested LDAP additions are installed
+  shell: "ldapadd -Qf '{{ openldap_conf_dir }}/{{ openldap_ldif_path }}/useradd_{{ cur_user.username }}.ldif' && touch '{{ openldap_state_dir }}/ldif_done/useradd_{{ cur_user.username }}'"
+  args:
+    chdir: "{{ openldap_conf_dir }}/{{ openldap_ldif_path }}"
+    creates: "{{ openldap_state_dir }}/ldif_done/useradd_{{ cur_user.username }}"
+  ignore_errors: yes
+  with_items: "{{ openldap_users_to_add }}"
+  loop_control:
+    loop_var: cur_user
+  tags:
+    - openldap
+    - openldap_schema
+    - openldap_server
+    - openldap_users

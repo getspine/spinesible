@@ -1,0 +1,32 @@
+# {{ ansible_managed }}
+# Configures rsyslog to send all logs to Loggly.
+
+# Setup disk assisted queues:
+$WorkDirectory /var/spool/rsyslog # where to place spool files
+$ActionQueueFileName fwdRule1     # unique name prefix for spool files
+$ActionQueueMaxDiskSpace 1g       # 1gb space limit (use as much as possible)
+$ActionQueueSaveOnShutdown on     # save messages to disk on shutdown
+$ActionQueueType LinkedList       # run asynchronously
+$ActionResumeRetryCount -1        # infinite retries if host is down
+
+# Setup rsyslog-gnutls:
+$DefaultNetstreamDriverCAFile /etc/rsyslog.d/keys/ca.d/logs-01.loggly.com_sha12.crt
+$ActionSendStreamDriver gtls
+$ActionSendStreamDriverMode 1
+$ActionSendStreamDriverAuthMode x509/name
+$ActionSendStreamDriverPermittedPeer *.loggly.com
+
+$template LogglyFormat,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %$!syslogtag% %procid% %msgid% [{{ loggly_customer_token }}@41058] %msg%\n"
+
+#Script below will send  'docker/Container ID' in appName.
+if re_match($syslogtag,'(docker)')
+then
+{
+  set $!extract = re_extract($syslogtag,'(docker/[a-zA-Z0-9]*)',0,1,"");
+  set $!syslogtag= $!extract;
+}
+else
+  set $!syslogtag = $syslogtag;
+
+# Send messages to Loggly over TCP using the template.
+action(type="omfwd" protocol="tcp" target="logs-01.loggly.com" port="6514" template="LogglyFormat" StreamDriver="gtls" StreamDriverMode="1" StreamDriverAuthMode="x509/name" StreamDriverPermittedPeers="*.loggly.com")

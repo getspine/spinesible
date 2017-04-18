@@ -1,0 +1,4 @@
+ansible==2.2.1.0
+boto==2.38.0
+boto3==1.4.2
+botocore==1.4.81

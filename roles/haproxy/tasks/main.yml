@@ -1,0 +1,29 @@
+---
+- name: Install HAProxy
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - haproxy-1.5.18-3.el7
+  tags:
+    - haproxy
+
+- name: Install HAProxy dependencies
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - haproxy
+    - openssl-devel
+  tags:
+    - haproxy
+
+- name: Ensure /var/run/haproxy exists
+  file:
+    path: /var/run/haproxy
+    owner: haproxy
+    group: haproxy
+    state: directory
+  tags:
+    - haproxy
+    - haproxy_run_dir

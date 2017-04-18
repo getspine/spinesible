@@ -1,0 +1,25 @@
+---
+opentsdb_version: 2.2.0
+
+opentsdb_group: changeme
+opentsdb_hbase_zookeeper_quorum_group: changeme
+
+opentsdb_bind_address: 0.0.0.0
+opentsdb_port: 4242
+
+opentsdb_failure_cycles_before_restart: 5
+
+opentsdb_hbase_compression_method: SNAPPY
+
+opentsdb_package_url: "https://github.com/OpenTSDB/opentsdb/releases/download/v{{ opentsdb_version }}/opentsdb-{{ opentsdb_version }}.noarch.rpm"
+
+opentsdb_config_files:
+  - opentsdb.conf
+  - logback.xml
+
+opentsdb_ports:
+  - type: tcp
+    port: 4242
+
+opentsdb_update_route53: yes
+opentsdb_route53_zone: main.hbase.spi.ne.

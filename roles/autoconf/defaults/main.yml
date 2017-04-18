@@ -1,0 +1,7 @@
+---
+autoconf_gnu_mirror_base: https://ftp.gnu.org/gnu
+
+autoconf_install_dir: /usr
+autoconf_source_dir: /usr/src
+
+autoconf_version: 2.69

@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  author: Steve Salevan <steve@spi.ne>
+  description: "Sets up the snap telemetry system: http://snap-telemetry.io"
+  license: MIT
+  min_ansible_version: 2.0
+  categories:
+    - system

@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  author: Steve Salevan <steve@spi.ne>
+  description: Installs and configures Docker
+  license: MIT
+  min_ansible_version: 1.6
+  categories:
+    - cloud
+    - system
+
+dependencies:
+  - role: epel

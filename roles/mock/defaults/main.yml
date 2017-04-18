@@ -1,0 +1,5 @@
+---
+mock_config: epel-7-x86_64
+
+mock_base_user: mock
+mock_users: []

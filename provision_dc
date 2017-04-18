@@ -1,0 +1,43 @@
+#!/bin/bash
+# Ensures that a Spine datacenter is provisioned.
+
+set -eo pipefail
+
+if [ $# -lt 1 ]; then
+  echo
+  echo "Ensures that a Spine datacenter is provisioned."
+  echo "Usage: ./provision_dc [datacenter] [phase (default 'all')] [args]"
+  exit -1
+fi
+
+# Ensures that, whenever we run our inventory script, we always obtain fresh data
+# from the AWS API.
+export PURGE_EC2_CACHE="true"
+
+export DIR=$(git rev-parse --show-toplevel)
+export INV="${DIR}/inventory/ec2"
+
+source ${DIR}/utils/spinedc
+
+if [ ! -z ${1+x} ]; then
+  PHASE=${1}
+  shift
+else
+  PHASE="all"
+fi
+
+
+if [ ${PHASE} == "all" ] || [ ${PHASE} == "provision" ]; then
+  echo " - Running provision phase in DC ${SPINE_DATACENTER}..."
+  ${DIR}/env/bin/ansible-playbook --vault-password-file ~/.vault -e @vault/creds.yml -f 1 -i $INV provision_dc.yml "${@}"
+fi
+
+if [ ${PHASE} == "all" ] || [ ${PHASE} == "bootstrap" ]; then
+  echo " - Running bootstrap phase in DC ${SPINE_DATACENTER}..."
+  ${DIR}/env/bin/ansible-playbook --vault-password-file ~/.vault -e @vault/creds.yml -f 100 -i $INV bootstrap_dc.yml "${@}"
+fi
+
+if [ ${PHASE} == "all" ] || [ ${PHASE} == "setup" ]; then
+  echo " - Running setup phase in DC ${SPINE_DATACENTER}..."
+  ${DIR}/utils/setup_spine_dc_sections "${@}"
+fi

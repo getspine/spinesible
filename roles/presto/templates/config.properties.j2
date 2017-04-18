@@ -1,0 +1,17 @@
+# Configures the Presto {{ presto_roles | join(' and ') }}.
+# {{ ansible_managed }}
+
+coordinator={% if 'coordinator' in presto_roles %}true{% else %}false{% endif %}
+
+node-scheduler.include-coordinator={% if 'coordinator' in presto_roles and 'worker' in presto_roles %}true{% else %}false{% endif %}
+
+http-server.http.port={{ presto_http_port }}
+distributed-joins-enabled={{ presto_distributed_joins_enabled | to_json }}
+discovery-server.enabled=true
+discovery.uri=http://{{ presto_discovery_host }}:{{ presto_http_port }}
+
+catalog.config-dir={{ presto_config_dir }}/catalog
+
+{% for key, value in presto_extra_config.items() %}
+{{ key }}={{ value }}
+{% endfor %}

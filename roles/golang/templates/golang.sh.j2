@@ -1,0 +1,5 @@
+# /etc/profile.d/golang.sh - Establishes Go parameters.
+# {{ ansible_managed }}
+
+export GOPATH='{{ golang_gopath }}'
+export PATH="${PATH}:{{ golang_gopath }}/bin:/usr/local/go/bin"

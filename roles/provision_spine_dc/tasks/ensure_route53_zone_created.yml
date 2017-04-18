@@ -1,0 +1,23 @@
+---
+- debug:
+    var: spine_cur_route53_zone
+
+- name: "Ensure private Route53 zone created: {{ spine_cur_route53_zone.zone }}"
+  route53_zone:
+    zone: "{{ spine_cur_route53_zone.zone }}"
+    vpc_id: "{{ spine_cur_route53_zone.vpcs[0] }}"
+    vpc_region: "{{ spine_datacenter }}"
+    region: "{{ spine_datacenter }}"
+    profile: "{{ spine_datacenter }}"
+  ignore_errors: yes
+  register: private_route53_zone_response
+  when: spine_cur_route53_zone.associate_vpcs
+
+- debug:
+    var: private_route53_zone_response
+  when: spine_cur_route53_zone.associate_vpcs
+
+- include: track_new_route53_zone.yml
+  when: |
+    spine_cur_route53_zone.associate_vpcs and
+    private_route53_zone_response.changed

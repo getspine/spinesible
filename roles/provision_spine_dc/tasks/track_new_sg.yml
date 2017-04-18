@@ -1,0 +1,21 @@
+---
+- name: "Track mapping between {{ cur_role_sg_name }}->{{ base_sg_response.group_id }}"
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_sg_name_to_id#{{ spine_section_name }}#{{ cur_role_sg_name }}"
+    value: "{{ base_sg_response.group_id }}"
+
+- name: "Track mapping between {{ spine_section_name }}:{{ cur_role_name }}:{{ cur_vpc_cidr }}->{{ base_sg_response.group_id }}"
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_sg_to_id#{{ spine_section_name }}#{{ cur_role_name }}#{{ cur_vpc_cidr }}"
+    value: "{{ base_sg_response.group_id }}"
+
+- name: "Track mapping between {{ base_sg_response.group_id }}->{{ cur_role_sg_name }}"
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_id_to_sg_name#{{ base_sg_response.group_id }}"
+    value: "{{ cur_role_sg_name }}"

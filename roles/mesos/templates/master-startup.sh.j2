@@ -1,0 +1,9 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# Starts the Mesos master process for cluster '{{ mesos_cluster_name }}'.
+
+ulimit {{ mesos_ulimit_options }}
+
+source /etc/sysconfig/mesos-master
+
+exec /usr/sbin/mesos-master "${MESOS_MASTER_ARGS[@]}"

@@ -1,0 +1,48 @@
+---
+- name: Ensure rsyslog-gnutls is installed
+  yum:
+    pkg: rsyslog-gnutls
+    state: latest
+  notify:
+    - Restart rsyslog
+  tags:
+    - loggly
+
+- name: Ensure that rsyslog certificate directory exists
+  file:
+    path: /etc/rsyslog.d/keys/ca.d
+    state: directory
+    mode: 0755
+  tags:
+    - loggly
+    - loggly_certs
+
+- name: Copy Loggly rsyslog certificate
+  copy:
+    src: logs-01.loggly.com_sha12.crt
+    dest: /etc/rsyslog.d/keys/ca.d/logs-01.loggly.com_sha12.crt
+  notify:
+    - Restart rsyslog
+  tags:
+    - loggly
+    - loggly_certs
+
+- name: Template Loggly rsyslog configuration
+  template:
+    src: 22-loggly.conf.j2
+    dest: /etc/rsyslog.d/22-loggly.conf
+  notify:
+    - Restart rsyslog
+  tags:
+    - loggly
+    - loggly_config
+
+- name: Ensure a baseline rsyslog.conf
+  template:
+    src: rsyslog.conf.j2
+    dest: /etc/rsyslog.conf
+  notify:
+    - Restart rsyslog
+  tags:
+    - loggly
+    - loggly_config

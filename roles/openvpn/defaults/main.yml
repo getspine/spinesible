@@ -1,0 +1,40 @@
+---
+# defaults file for openvpn
+openvpn_key_dir: /etc/openvpn/keys
+openvpn_port: 1194
+openvpn_proto: udp
+openvpn_rsa_bits: 2048
+openvpn_service_name: openvpn
+openvpn_uninstall: no
+openvpn_use_pregenerated_dh_params: no
+openvpn_use_modern_tls: yes
+openvpn_verify_cn: no
+openvpn_redirect_gateway: yes
+openvpn_set_dns: yes
+openvpn_enable_management: no
+openvpn_server_network: 172.16.0.0
+openvpn_server_netmask: 255.255.0.0
+openvpn_forward_subnet: 10.0.0.0/16
+openvpn_dns_override: 10.0.0.2
+tls_auth_required: yes
+ci_build: no
+clients: []
+openvpn_push: []
+
+# Used in firewalld
+firewalld_default_interface_zone: public
+
+# LDAP configuration
+openvpn_use_ldap: no
+ldap:
+  url: ldap://host.example.com
+  anonymous_bind: False
+  bind_dn: uid=Manager,ou=People,dc=example,dc=com
+  bind_password: mysecretpassword
+  tls_enable: no
+  tls_ca_cert_file: /etc/openvpn/auth/ca.pem
+  base_dn: ou=People,dc=example,dc=com
+  search_filter: (&(uid=%u)(accountStatus=active))
+  require_group: False
+  group_base_dn: ou=Groups,dc=example,dc=com
+  group_search_filter: (|(cn=developers)(cn=artists))

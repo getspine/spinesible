@@ -1,0 +1,10 @@
+---
+galaxy_info:
+  author: Steve Salevan <steve@spi.ne>
+  description: Installs the Monit process monitoring service
+  license: MIT
+  min_ansible_version: 2.0
+
+dependencies:
+  - role: lsb
+  - role: epel

@@ -1,0 +1,8 @@
+# Enables the Presto Kafka connector.
+# {{ ansible_managed }}
+
+connector.name=kafka
+kafka.nodes={{ kafka_hosts | join(',') }}
+kafka.table-names={{ presto_kafka_tables | join(',') }}
+kafka.hide-internal-columns=true
+kafka.table-description-dir={{ presto_config_dir }}/kafka

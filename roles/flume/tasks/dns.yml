@@ -1,0 +1,18 @@
+---
+- name: Update DNS RR record tracking Flume aggregator nodes
+  local_action:
+    module: route53
+    command: create
+    zone: "{{ flume_route53_zone }}"
+    private_zone: yes
+    overwrite: yes
+    vpc_id: "{{ flume_route53_vpc_id }}"
+    record: "{{ flume_dns_rr_name }}.{{ flume_route53_zone }}"
+    type: A
+    ttl: 30
+    value: "{{ hostvars | fetchlistfromdict(groups[flume_dns_group]) | map(attribute='ec2_private_ip_address') | list }}"
+  become: no
+  run_once: yes
+  tags:
+    - flume
+    - flume_dns

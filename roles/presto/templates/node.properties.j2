@@ -1,0 +1,9 @@
+# Configures a Presto node.
+# {{ ansible_managed }}
+
+node.environment={{ presto_environment }}
+node.id={{ presto_node_id }}
+node.data-dir={{ presto_data_dir }}
+{% for key, value in presto_extra_node_config %}
+{{ key }}={{ value }}
+{% endfor %}

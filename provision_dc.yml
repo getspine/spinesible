@@ -1,0 +1,21 @@
+---
+- name: Ensure all necessary resources are provisioned in a Spine DC
+  connection: local
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - "dc_config/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+    - "dc_vars/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+
+  vars:
+    provision_base_dc_environment: yes
+    provision_iam: yes
+    provision_iam_instance_profiles: "{{ spine_iam_instance_profiles }}"
+    provision_iam_policies: "{{ spine_iam_policies }}"
+    provision_iam_roles: "{{ spine_iam_roles }}"
+    provision_iam_users: "{{ spine_iam_users }}"
+
+  roles:
+    - provision_iam
+    - provision_spine_dc

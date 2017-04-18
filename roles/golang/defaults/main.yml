@@ -1,0 +1,16 @@
+---
+golang_install_method: release
+
+golang_version: 1.8.1
+golang_os: linux
+golang_arch: amd64
+
+golang_tarball: "go{{ golang_version }}.{{ golang_os }}-{{ golang_arch }}.tar.gz"
+golang_release_download_url: "https://storage.googleapis.com/golang/{{ golang_tarball }}"
+
+golang_packages:
+  - golang
+  - golang-bin
+  - golang-src
+
+golang_gopath: /usr/local/gopath

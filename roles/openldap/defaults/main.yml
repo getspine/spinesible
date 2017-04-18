@@ -1,0 +1,84 @@
+---
+openldap_roles:
+  - client
+  - server
+
+openldap_base_schemas:
+  - collective
+  - corba
+  - cosine
+  - duaconf
+  - dyngroup
+  - inetorgperson
+  - java
+  - misc
+  - nis
+  - openldap
+  - ppolicy
+  - kerberos
+
+openldap_supplemental_base_schemas:
+  - kerberos
+
+openldap_modifies: []
+
+openldap_users_to_add: []
+
+openldap_additions:
+  - base
+  - users_and_groups
+  - dev_user
+
+openldap_enable_s3_backups: no
+openldap_backups_s3_bucket: CHANGEME
+openldap_backups_kms_key: CHANGEME
+
+openldap_restore_backup: no
+openldap_backup_id: 1234567890
+
+openldap_user: ldap
+openldap_group: ldap
+
+openldap_enable_kerberos: no
+openldap_enable_sasl: no
+openldap_kerberos_keytab_file: /etc/openldap/ldap.keytab
+
+openldap_slapd_options: []
+
+openldap_master_host: localhost
+
+openldap_failure_cycles_before_restart: 2
+openldap_restart_cycles_before_timeout: 5
+
+# The auth domain to configure OpenLDAP servers and clients with
+openldap_domain_name: example.com
+openldap_dc: "dc={{ openldap_domain_name.split('.')[0] }},dc={{ openldap_domain_name.split('.')[1] }}"
+
+openldap_urls:
+  - ldapi:///
+  - ldap:///
+  - ldaps:///
+
+openldap_database_type: mdb
+openldap_database_maxsize_mb: 16834
+
+openldap_root_user: admin
+openldap_root_password: changeme
+
+# Configuration and initial LDIF schema
+openldap_conf_dir: /etc/openldap
+openldap_certs_path: certs
+openldap_ldif_path: ldif
+
+openldap_state_dir: /var/lib/slapd
+
+openldap_enable_ssl: yes
+openldap_ssl_ciphers: EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
+openldap_ssl_cert: ""
+openldap_ssl_key: ""
+
+openldap_country: US
+openldap_state: North Carolina
+openldap_location: Raleigh
+openldap_organization: Phil Collins Incorporated
+openldap_organization_description: A Phil Collins Company

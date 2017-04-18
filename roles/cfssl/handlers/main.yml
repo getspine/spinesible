@@ -1,0 +1,14 @@
+---
+- name: Reload systemd and restart cfssl
+  command: systemctl daemon-reload
+  notify:
+    - Restart cfssl
+  tags:
+    - cfssl
+
+- name: Restart cfssl
+  service:
+    name: cfssl
+    state: restarted
+  tags:
+    - cfssl

@@ -1,0 +1,22 @@
+---
+- name: Bootstrap new server node
+  hosts: "{{ lookup('env', 'ANSIBLE_GROUP') }}"
+  remote_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
+  become: "{{ lookup('env', 'ANSIBLE_SHOULD_SUDO') }}"
+  become_user: root
+  become_method: sudo
+
+  vars_files:
+    - "dc_config/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+    - "dc_vars/{{ lookup('env', 'SPINE_DATACENTER') }}.yml"
+
+  vars:
+    bootstrap_should_set_hostname: "{{ lookup('env', 'ANSIBLE_SHOULD_SET_HOSTNAME') }}"
+    bootstrap_should_create_base_user: "{{ lookup('env', 'ANSIBLE_SHOULD_CREATE_BASE_USER') }}"
+    bootstrap_should_format_volumes: "{{ lookup('env', 'ANSIBLE_SHOULD_FORMAT_VOLUMES') }}"
+    bootstrap_hostname: "{{ ec2_tag_hostname }}"
+    bootstrap_volumes_to_format: "{{ lookup('env', 'ANSIBLE_FORMAT_VOLUMES') }}"
+    ntp_force_time_sync: no
+
+  roles:
+    - bootstrap

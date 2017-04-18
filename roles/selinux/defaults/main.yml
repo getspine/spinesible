@@ -1,0 +1,18 @@
+---
+selinux_modules:
+  - base
+
+selinux_policy: targeted
+selinux_state: enforcing
+
+selinux_packages:
+  - libselinux
+  - libselinux-python
+  - libselinux-utils
+  - libsemanage-python
+  - policycoreutils-python
+  - selinux-policy
+  - "selinux-policy-{{ selinux_policy }}"
+  - setroubleshoot
+
+selinux_booleans: {}

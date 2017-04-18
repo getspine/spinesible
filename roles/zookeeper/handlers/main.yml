@@ -1,0 +1,7 @@
+---
+- include: ../../monit/handlers/main.yml
+
+- name: Restart ZooKeeper
+  service:
+    name: zookeeper
+    state: restarted

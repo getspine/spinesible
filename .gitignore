@@ -1,0 +1,94 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Mac droppings
+.DS_Store
+
+# Javascript detritus
+spine/static/libs
+spine/static/js/.module-cache
+
+# Native libraries
+*.so
+*.dylib
+
+# Distribution / packaging
+.Python
+env
+env/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.python-version
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+*.pot
+
+# Logfiles and databases
+*.log
+*.sqlite3
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# JS droppings
+node_modules/
+dist
+.tmp
+.sass-cache
+bower_components/
+spine/static/frontpage/css/
+spine/static/webapp/css/
+spine/static/webapp/js/
+
+# The temporary dir
+tmp/
+
+# Vagrant droppings
+.vagrant/
+
+## Editor droppings
+*~
+\#*
+.\#*
+*.swp
+*.swo
+.idea
+sm.iml
+
+# Ansible droppings
+*.retry
+
+# Ansible debug playbook
+debug.yml

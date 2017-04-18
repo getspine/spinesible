@@ -1,0 +1,72 @@
+---
+presto_roles:
+  - coordinator
+  - worker
+
+presto_version: 0.155
+
+presto_maven_url: https://repo1.maven.org/maven2
+presto_artifact: com/facebook/presto/presto-server
+
+presto_listen_host: 0.0.0.0
+presto_http_port: 1337
+
+presto_user: presto
+presto_group: presto
+
+presto_ulimit_files: 32768
+
+presto_distributed_joins_enabled: yes
+
+presto_environment: production
+presto_node_id: "{{ ansible_nodename | replace('.', '-') }}"
+presto_discovery_host: aggregators.mesos.spi.ne
+
+presto_dir: /usr/lib/presto
+presto_config_dir: /etc/presto
+presto_data_dir: /var/lib/presto
+presto_log_dir: /var/log/presto
+
+presto_extra_config: {}
+presto_extra_node_config: {}
+
+presto_kafka_tables: []
+
+presto_jvm_params:
+  - "-server"
+  - "-Xmx1G"
+  - "-XX:+UseConcMarkSweepGC"
+  - "-XX:+ExplicitGCInvokesConcurrent"
+  - "-XX:+CMSClassUnloadingEnabled"
+  - "-XX:+AggressiveOpts"
+  - "-XX:+HeapDumpOnOutOfMemoryError"
+  - "-XX:OnOutOfMemoryError=kill -9 %p"
+  - "-XX:PermSize=150M"
+  - "-XX:MaxPermSize=150M"
+  - "-XX:ReservedCodeCacheSize=150M"
+
+presto_log_params:
+  com.facebook.presto: INFO
+
+presto_metastore_db_type: h2
+
+presto_config_files:
+  - node.properties
+  - jvm.config
+  - config.properties
+  - log.properties
+
+presto_kafka_schema_files:
+  - spine.container_json_logs.json.j2
+
+presto_catalog_files:
+  - jmx.properties
+  - kafka.properties
+
+presto_firewall_ports:
+  - port: "{{ presto_http_port }}"
+    type: tcp
+
+presto_skip_install: no
+
+presto_failure_cycles_before_restart: 5

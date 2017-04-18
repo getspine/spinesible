@@ -1,0 +1,21 @@
+# {{ ansible_managed }}
+# Sets slapd SELinux policies.
+
+module spine_slapd 1.0;
+
+require {
+  type slapd_t;
+  type var_run_t;
+  type var_lib_t;
+  class sock_file unlink;
+  class dir { add_name remove_name write };
+  class file { create lock open read unlock unlink write };
+}
+
+#============= slapd_t ==============
+
+allow slapd_t var_lib_t:dir { add_name remove_name write };
+
+allow slapd_t var_lib_t:file { create lock open read unlock unlink write };
+
+allow slapd_t var_run_t:sock_file unlink;

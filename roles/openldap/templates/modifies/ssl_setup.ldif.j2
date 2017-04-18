@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+# Sets up OpenLDAP's TLS settings.
+
+dn: cn=config
+replace: olcTLSCipherSuite
+olcTLSCipherSuite: {{ openldap_ssl_ciphers }}
+-
+replace: olcTLSCACertificateFile
+olcTLSCACertificateFile: {{ openldap_ssl_ca_cert }}
+-
+replace: olcTLSCertificateFile
+olcTLSCertificateFile: {{ openldap_ssl_cert }}
+-
+replace: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: {{ openldap_ssl_key }}

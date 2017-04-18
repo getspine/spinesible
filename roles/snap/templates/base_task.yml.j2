@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+---
+  version: 1
+  schedule:
+    type: "simple"
+    interval: "60s"
+  max-failures: 10
+  workflow:
+    collect:
+      metrics:
+        /intel/procfs/cpu/all/*: {}
+      config: {}
+      process:
+        - plugin_name: "passthru"
+          config:
+            debug: true
+          process: null
+          publish: []

@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+
+{{ zookeeper_log_dir }}/*.log {
+
+  weekly
+  rotate 10
+  copytruncate
+  delaycompress
+  compress
+  notifempty
+  missingok
+
+}

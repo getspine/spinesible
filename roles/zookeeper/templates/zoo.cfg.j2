@@ -1,0 +1,31 @@
+# {{ ansible_managed }}
+
+# see http://zookeeper.apache.org/doc/current/zookeeperAdmin.html
+
+# The number of milliseconds of each tick
+tickTime={{ zookeeper_tick_time_millis }}
+
+# The number of ticks that the initial
+# synchronization phase can take
+initLimit={{ zookeeper_num_init_ticks }}
+
+# The number of ticks that can pass between
+# sending a request and getting an acknowledgement
+syncLimit={{ zookeeper_num_sync_ticks }}
+
+# the directory where the snapshot is stored.
+dataDir={{ zookeeper_state_dir }}
+
+# the port at which the clients will connect
+clientPort={{ zookeeper_client_port }}
+
+# ZooKeeper servers in quorum:
+{% for zookeeper_host in zookeeper_hosts.split(',') %}
+server.{{ loop.index }}={{ zookeeper_host }}:{{ zookeeper_follower_port }}:{{ zookeeper_leader_election_port }}
+{% endfor %}
+
+# Allow larger than default maximum client connections.
+maxClientCnxns={{ zookeeper_max_client_conns }}
+
+# ZooKeeper and HBase need same session timeout values.
+maxSessionTimeout={{ zookeeper_session_timeout_millis }}

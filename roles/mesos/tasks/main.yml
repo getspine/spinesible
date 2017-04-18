@@ -1,0 +1,41 @@
+---
+- name: Ensure that the appropriate Mesos package name is selected
+  set_fact:
+    mesos_pkgname: "mesos-{{ mesos_version }}"
+  when: mesos_version != "latest"
+  tags:
+    - mesos
+
+- name: Ensure that Mesos-specific facts are set
+  set_fact:
+    mesos_pkgname: mesos
+  when: mesos_version == "latest"
+  tags:
+    - mesos
+
+- include: install.yml
+  tags:
+    - mesos
+
+- include: setup.yml
+  when: not mesos_install_only
+  tags:
+    - mesos
+
+- name: Restart mesos-slave (if requested)
+  service:
+    name: mesos-slave
+    state: restarted
+  when: "mesos_restart and 'slave' in mesos_roles"
+  tags:
+    - mesos
+    - mesos_restart
+
+- name: Restart mesos-master (if requested)
+  service:
+    name: mesos-master
+    state: restarted
+  when: "mesos_restart and 'master' in mesos_roles"
+  tags:
+    - mesos
+    - mesos_restart

@@ -1,0 +1,7 @@
+---
+- include: install.yml
+  when: not presto_skip_install
+
+- include: config.yml
+
+- include: monit.yml

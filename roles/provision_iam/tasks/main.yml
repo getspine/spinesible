@@ -1,0 +1,20 @@
+---
+- name: Ensure that all IAM users are present
+  include: ensure_user_provisioned.yml
+  with_items: "{{ provision_iam_users }}"
+  loop_control:
+    loop_var: cur_iam_user
+  when: provision_iam
+  tags:
+    - provision_iam
+    - provision_iam_users
+
+- name: Ensure that all IAM roles are present
+  include: ensure_role_provisioned.yml
+  with_items: "{{ provision_iam_roles }}"
+  loop_control:
+    loop_var: cur_iam_role
+  when: provision_iam
+  tags:
+    - provision_iam
+    - provision_iam_roles

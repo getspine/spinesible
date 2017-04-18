@@ -1,0 +1,64 @@
+---
+- name: "Ensure site-specific config directory created at /etc/hadoop/conf.{{ hadoop_config_site_name | lower }}"
+  file:
+    path: "/etc/hadoop/conf.{{ hadoop_config_site_name | lower }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - hadoop_config
+
+- name: "Configure Hadoop into /etc/hadoop/conf.{{ hadoop_config_site_name | lower }}"
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/hadoop/conf.{{ hadoop_config_site_name | lower }}/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items: "{{ hadoop_config_files }}"
+  tags:
+    - hadoop_config
+    - hadoop_config_deploy
+
+- name: "Use alternatives to update default config to /etc/hadoop/conf.{{ hadoop_config_site_name | lower }}"
+  alternatives:
+    name: hadoop-conf
+    link: /etc/hadoop/conf
+    path: "/etc/hadoop/conf.{{ hadoop_config_site_name | lower }}"
+  tags:
+    - hadoop_config
+
+- name: Install common Hadoop packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - hadoop-client
+    - hadoop-mapreduce
+  tags:
+    - hadoop_config
+
+- name: Create DFS name directories
+  file:
+    path: "{{ item | url_to_path }}"
+    state: directory
+    owner: hdfs
+    group: hadoop
+    mode: 0750
+    recurse: yes
+  with_items: "{{ hadoop_config_dfs_name_dir }}"
+  tags:
+    - hadoop_config
+
+- name: Create DFS data directories
+  file:
+    path: "{{ item | url_to_path }}"
+    state: directory
+    owner: hdfs
+    group: hadoop
+    mode: 0750
+    recurse: yes
+  with_items: "{{ hadoop_config_dfs_data_dir }}"
+  tags:
+    - hadoop_config

@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+
+check process postfix matching "/usr/libexec/postfix/master"
+  start program = "/bin/systemctl start postfix.service"
+  stop program = "/bin/systemctl stop postfix.service"
+  if failed port 25 protocol smtp then restart
+  if 5 restarts within 5 cycles then timeout

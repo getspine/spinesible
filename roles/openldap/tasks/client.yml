@@ -1,0 +1,7 @@
+---
+- name: Copy the OpenLDAP client configuration file
+  template:
+    src: ldap.conf.j2
+    dest: "{{ openldap_conf_dir }}/ldap.conf"
+  tags:
+    - openldap

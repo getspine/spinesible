@@ -1,0 +1,82 @@
+#!/bin/bash
+# {{ ansible_managed }}
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+AURORA_ZK_ENDPOINTS="$(cat {{ aurora_conf_dir }}/zk | rev | cut -c 2- | rev)"
+AURORA_SDZK_ENDPOINTS="$(cat {{ aurora_conf_dir }}/sdzk | rev | cut -c 2- | rev)"
+
+# Flags that control the behavior of the JVM.
+JAVA_OPTS=(
+  -server
+  -Djava.net.preferIPv4Stack=true
+
+  # Location of libmesos-XXXX.so / libmesos-XXXX.dylib
+  -Djava.library.path='/usr/lib;/usr/lib64'
+
+{% for jvm_flag in aurora_jvm_flags %}
+  {{ jvm_flag }}
+{% endfor %}
+)
+
+# Flags control the behavior of the Aurora scheduler.
+# For a full list of available flags, run bin/aurora-scheduler -help
+AURORA_FLAGS=(
+  -cluster_name='{{ aurora_cluster_name }}'
+
+  # Ports to listen on.
+  -http_port={{ aurora_http_port }}
+
+  -zk_endpoints="${AURORA_ZK_ENDPOINTS}"
+  -mesos_master_address="$(cat {{ mesos_conf_dir }}/zk)"
+
+  -serverset_path='{{ aurora_serverset_zk_path }}'
+
+  -native_log_file_path='{{ aurora_state_dir }}/{{ aurora_native_log_path }}'
+  -native_log_quorum_size='{{ aurora_native_log_quorum_size }}'
+  -native_log_zk_group_path='{{ aurora_native_log_zk_path }}'
+
+  -require_docker_use_executor=False
+  -enable_mesos_fetcher=True
+
+  -backup_dir="{{ aurora_state_dir }}/{{ aurora_backup_path }}"
+
+  # The local path of the Thermos executor binary.
+  -thermos_executor_path='/usr/bin/thermos_executor'
+
+  # Flags to pass to the Thermos executor.
+  -thermos_executor_flags="--preserve_env --runner-logger-destination=console --execute-as-user={{ aurora_thermos_user }}"
+  -thermos_executor_cpu='{{ aurora_thermos_cpu }}'
+  -thermos_executor_ram='{{ aurora_thermos_ram_mb }}MB'
+
+  -allowed_container_types="{{ mesos_containerizers | join(',') | upper }}"
+
+  # Extra flags:
+{% for extra_flag in aurora_extra_flags %}
+  {{ extra_flag }}
+{% endfor %}
+
+{% if aurora_enable_kerberos %}
+{% for kerberos_flag in aurora_kerberos_flags %}
+  {{ kerberos_flag }}
+{% endfor %}
+{% endif %}
+)
+
+# Environment variables control the behavior of the Mesos scheduler driver (libmesos).
+GLOG_v=1
+LIBPROCESS_PORT='{{ aurora_libprocess_port }}'
+LIBPROCESS_IP='{{ mesos_ip }}'
+
+JAVA_OPTS="${JAVA_OPTS[*]}"

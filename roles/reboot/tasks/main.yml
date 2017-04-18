@@ -1,0 +1,37 @@
+---
+- name: Ensure SSH is up
+  local_action:
+    module: wait_for
+    host: "{{ reboot_host }}"
+    port: "{{ reboot_ssh_port }}"
+    search_regex: OpenSSH
+    timeout: 300
+  become: no
+  tags:
+    - reboot
+
+- name: Reboot node
+  shell: sleep 2 && shutdown -r now "Ansible triggered reboot"
+  async: yes
+  poll: no
+  ignore_errors: yes
+  tags:
+    - reboot
+
+- name: Wait for SSH to come up again
+  local_action:
+    module: wait_for
+    host: "{{ reboot_host }}"
+    port: "{{ reboot_ssh_port }}"
+    search_regex: OpenSSH
+    delay: 120
+    timeout: 600
+  become: no
+  tags:
+    - reboot
+
+- name: Wait another 15 seconds to be certain SSH is running
+  pause:
+    seconds: 15
+  tags:
+    - reboot

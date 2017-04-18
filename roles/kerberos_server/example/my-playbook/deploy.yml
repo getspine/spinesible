@@ -1,0 +1,11 @@
+---
+- name: Deploy Kerberos Server to my-server
+  hosts: all
+  vars:
+    kdc_realm_name: REAL.COMPANYNAME.COM
+    kdc_port: 88
+    kdc_master_db_pass: br34km3
+    kadmin_user: kadmincompany
+    kadmin_pass: k4dm1np4ss
+  roles:
+    - kerberos_server

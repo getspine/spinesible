@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+# Adds {{ cur_user.user_type }}: {{ cur_user.username }}
+
+dn: cn={{ cur_user.username }},ou=users,{{ openldap_dc }}
+cn: {{ cur_user.username }}
+gidNumber: 20001
+objectClass: top
+objectClass: posixGroup
+
+dn: uid={{ cur_user.username }},ou=groups,{{ openldap_dc }}
+uid: {{ cur_user.username }}
+uidNumber: 20001
+gidNumber: 20001
+cn: {{ cur_user.username }}
+sn: {{ cur_user.username }}
+objectClass: top
+objectClass: person
+objectClass: posixAccount
+objectClass: shadowAccount
+loginShell: /bin/bash
+homeDirectory: {{ cur_user['home_dir'] | default(['/home', cur_user.username]|join('/')) }}
+userPassword: {CRYPT}*

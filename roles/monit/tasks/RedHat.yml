@@ -1,0 +1,13 @@
+---
+- name: Install Monit packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - monit
+
+- name: Template a Monit systemd service file
+  template:
+    src: monit.service.j2
+    dest: /usr/lib/systemd/system/monit.service
+  when: ansible_lsb.major_release == '7'

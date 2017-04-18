@@ -1,0 +1,51 @@
+---
+hdfs_roles:
+  - namenode
+  - datanode
+
+hdfs_update_firewall: no
+hdfs_datanode_firewall_ports:
+  - port: 1004
+    type: tcp
+  - port: 1006
+    type: tcp
+  - port: 50010
+    type: tcp
+  - port: 50020
+    type: tcp
+  - port: 50075
+    type: tcp
+  - port: 50475
+    type: tcp
+
+hdfs_namenode_firewall_ports:
+  - port: 8020
+    type: tcp
+  - port: 8022
+    type: tcp
+  - port: 50070
+    type: tcp
+  - port: 50370
+    type: tcp
+
+hdfs_journalnode_firewall_ports:
+  - port: 8485
+    type: tcp
+  - port: 8480
+    type: tcp
+  - port: 8481
+    type: tcp
+
+hdfs_secondary_namenode_firewall_ports:
+  - port: 8020
+    type: tcp
+  - port: 8022
+    type: tcp
+  - port: 50070
+    type: tcp
+  - port: 50370
+    type: tcp
+  - port: 50495
+    type: tcp
+
+hdfs_failure_cycles_before_restart: 5

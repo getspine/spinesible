@@ -1,0 +1,7 @@
+---
+thrift_version: 0.10.0
+
+thrift_apache_mirror_base: http://mirror.cogentco.com/pub/apache/
+
+thrift_install_dir: /usr
+thrift_source_dir: /usr/src

@@ -1,0 +1,44 @@
+---
+- name: Ensure that dependent packages are installed
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - gcc
+  tags:
+    - golang
+
+- include: release.yml
+  when: golang_install_method == "release"
+  tags:
+    - golang
+
+- include: package.yml
+  when: golang_install_method == "package"
+  tags:
+    - golang
+
+- name: Ensure that GOPATH exists
+  file:
+    path: "{{ golang_gopath }}"
+    state: directory
+    recurse: yes
+    mode: 0755
+  tags:
+    - golang
+
+- name: Add profile.d entry for Golang
+  template:
+    src: golang.sh.j2
+    dest: /etc/profile.d/golang.sh
+  tags:
+    - golang
+
+- name: Install Godep
+  command: /usr/local/go/bin/go get github.com/tools/godep
+  args:
+    creates: "{{ golang_gopath }}/bin/godep"
+  environment:
+    GOPATH: "{{ golang_gopath }}"
+  tags:
+    - golang

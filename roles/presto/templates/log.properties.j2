@@ -1,0 +1,5 @@
+# Provides logging options for Presto.
+# {{ ansible_managed }}
+{% for key, value in presto_log_params.items() %}
+{{ key }}={{ value }}
+{% endfor %}

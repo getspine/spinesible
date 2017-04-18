@@ -1,0 +1,77 @@
+---
+- name: "Refresh Datacenter vars for DC: {{ spine_datacenter }}"
+  include_vars:
+    file: "dc_vars/{{ spine_datacenter }}.yml"
+
+- name: "Pick a VPC to provision into for new instance in role: {{ cur_role_name }}"
+  set_fact:
+    cur_instance_vpc: "{{ spine_section.vpcs | random }}"
+
+- debug:
+    var: cur_instance_vpc
+
+- name: "Pick a subnet and AZ within VPC {{ cur_instance_vpc }} for new instance in role: {{ cur_role_name }}"
+  set_fact:
+    cur_instance_subnet: "{{ spine_vpcs[cur_instance_vpc].subnets | random }}"
+
+- debug:
+    var: cur_instance_subnet
+
+- name: "Set EC2 variables for role {{ cur_role_name }} in DC: {{ spine_datacenter }}"
+  set_fact:
+    ec2_base_name: "{{ cur_role_name }}"
+    ec2_base_volume_delete_on_termination: "{{ cur_role['base_volume_delete_on_termination'] | default('no') }}"
+    ec2_base_volume_size_gb: "{{ cur_role['base_volume_size_gb'] | default('8') }}"
+    ec2_base_volume_snapshot: "{{ cur_role.base_volume_snapshot }}"
+    ec2_base_volume_type: "{{ cur_role['base_volume_type'] | default('gp2') }}"
+    ec2_create_ebs_volume: "{{ cur_role['create_ebs_volume'] | default('no') }}"
+    ec2_ebs_size_gb: "{{ cur_role['ebs_size_gb'] | default(0) }}"
+    ec2_ebs_volume_type: "{{ cur_role['ebs_volume_type'] | default('standard') }}"
+    ec2_format_volumes: "{{ cur_role['format_volumes'] | default('no') }}"
+    ec2_image: "{{ cur_role.image }}"
+    ec2_instance_profile_name: "{{ cur_role['instance_profile_name'] | default(None) }}"
+    ec2_instance_type: "{{ cur_role.instance_type }}"
+    ec2_region: "{{ spine_datacenter }}"
+    ec2_route53_zone: "{{ spine_section.route53_zone }}"
+    ec2_security_group_id: "{{ spine_sg_to_id[spine_section_name][cur_role_name][cur_instance_vpc] }}"
+    ec2_tags: "{{ cur_role['tags'] | default({}) }}"
+    ec2_vpc_subnet_id: "{{ spine_subnet_to_id[cur_instance_subnet.cidr] }}"
+
+- name: Create a new SSH keypair (if requested)
+  ec2_key:
+    name: "{{ ec2_keypair_name }}"
+    region: "{{ ec2_region }}"
+    profile: "{{ ec2_region }}"
+    key_material: "{{ ec2_ssh_key }}"
+
+- name: "Provision new EC2 instance in role: {{ cur_role_name }}"
+  ec2:
+    image: "{{ ec2_image }}"
+    instance_type: "{{ ec2_instance_type }}"
+    instance_profile_name: "{{ ec2_instance_profile_name | default(None) }}"
+    keypair: "{{ ec2_keypair_name }}"
+    count: 1
+    instance_tags: "{{ ec2_tags }}"
+    region: "{{ ec2_region }}"
+    profile: "{{ ec2_region }}"
+    group_id: "{{ ec2_security_group_id }}"
+    assign_public_ip: "{{ ec2_assign_public_ip }}"
+    vpc_subnet_id: "{{ ec2_vpc_subnet_id }}"
+    volumes:
+      - device_name: /dev/sda1
+        volume_type: "{{ ec2_base_volume_type }}"
+        snapshot: "{{ ec2_base_volume_snapshot }}"
+        volume_size: "{{ ec2_base_volume_size_gb }}"
+        delete_on_termination: "{{ ec2_base_volume_delete_on_termination }}"
+    wait: yes
+    wait_timeout: 600
+  register: create_ec2_response
+
+- debug:
+    var: create_ec2_response
+
+- name: Prepare newly-created instances for bootstrapping
+  include: finalize_instance.yml
+  with_items: "{{ create_ec2_response.instances }}"
+  loop_control:
+    loop_var: ec2_new_instance

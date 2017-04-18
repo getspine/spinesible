@@ -1,0 +1,37 @@
+---
+- name: "Looks up the role definition for role: {{ cur_role_name }}"
+  set_fact:
+    cur_role: "{{ spine_section.roles[cur_role_name] }}"
+    cur_role_sg_name: "{{ spine_section_name }}-{{ cur_role_name }}"
+    cur_role_tag: "{{ ['tag_ansible_group', cur_role_name] | join('_') }}"
+  tags:
+    - provision_spine_dc
+    - provision_spine_dc_sgs
+
+- include: ensure_sg_provisioned.yml
+  with_items: "{{ spine_section.vpcs }}"
+  loop_control:
+    loop_var: cur_vpc_cidr
+  tags:
+    - provision_spine_dc
+    - provision_spine_dc_sgs
+
+- name: "Calculates number of shards in EC2 group: {{ cur_role_tag }}"
+  set_fact:
+    cur_role_shards: "{{ groups[cur_role_tag] | default([]) | length }}"
+  tags:
+    - provision_spine_dc
+
+- name: "Calculate necessary shards for EC2 group: {{ cur_role_tag }}"
+  set_fact:
+    cur_role_shards_to_provision: "{{ cur_role.quantity - cur_role_shards|int }}"
+  tags:
+    - provision_spine_dc
+
+- name: "Provision any necessary shards for role: {{ cur_role_name }}->{{ cur_role_shards_to_provision }}"
+  include: provision_instance.yml
+  with_sequence: "start=1 end={{ cur_role_shards_to_provision }} stride=1"
+  when: cur_role_shards_to_provision != "0"
+  ignore_errors: yes
+  tags:
+    - provision_spine_dc

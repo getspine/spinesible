@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+
+{{ mesos_log_dir }}/*.log {
+
+  size 10M
+  missingok
+  rotate 10
+  compress
+  delaycompress
+  notifempty
+  copytruncate
+
+}

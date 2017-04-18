@@ -1,0 +1,22 @@
+---
+- name: "Ensure that latest DC config is refreshed for DC: {{ spine_datacenter }}"
+  command: "cat ./dc_config/{{ spine_datacenter }}.yml"
+  register: dc_config_output
+
+- name: "Ensure that latest DC vars are refreshed for DC: {{ spine_datacenter }}"
+  command: "cat ./dc_vars/{{ spine_datacenter }}.yml"
+  register: dc_vars_output
+
+- name: Ensure that latest provisioning vars are loaded
+  command: cat ./group_vars/local
+  register: provisioning_vars_output
+
+- name: "Parse DC vars for DC: {{ spine_datacenter }}"
+  set_fact:
+    spine_dc_config: "{{ dc_config_output | from_yaml }}"
+    spine_dc_vars: "{{ dc_vars_output.stdout | from_yaml }}"
+    provision_vars_boxed: "{{ provisioning_vars_output.stdout | from_yaml }}"
+
+- name: Unbox provisioning vars for ease of reference
+  set_fact:
+    provision_vars: "{{ provision_vars_boxed.provision_vars }}"

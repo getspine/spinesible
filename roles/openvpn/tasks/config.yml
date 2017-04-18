@@ -1,0 +1,45 @@
+- name: set openvpn service name - systemd
+  set_fact:
+    openvpn_service_name: "openvpn@{{openvpn_config_file}}.service"
+  when: ansible_service_mgr == "systemd"
+
+- name: Check systemd existence as Docker Guest
+  stat:
+    path: /bin/systemctl
+  when: ansible_virtualization_type == "docker" and ansible_virtualization_role == "guest"
+  register: stat_result
+
+- name: Set openvpn service name - Docker + systemd
+  set_fact: openvpn_service_name=openvpn@{{openvpn_config_file}}.service
+  when: stat_result is defined and stat_result.stat.exists == True
+
+- name: create openvpn config file
+  template:
+    src: server.conf.j2
+    dest: "/etc/openvpn/{{openvpn_config_file}}.conf"
+    owner: root
+    group: root
+  notify:
+    - restart openvpn
+
+- name: Install LDAP config
+  template:
+    src: ldap.conf.j2
+    dest: /etc/openvpn/auth/ldap.conf
+    owner: root
+    group: root
+  when: openvpn_use_ldap
+
+- name: copy openvpn logrotate config file
+  copy:
+    src: openvpn_logrotate.conf
+    dest: /etc/logrotate.d/openvpn.conf
+    owner: root
+    group: root
+    mode: 0400
+
+- name: setup openvpn auto-start & start
+  service:
+    name: "{{openvpn_service_name}}"
+    enabled: yes
+    state: started

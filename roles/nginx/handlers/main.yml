@@ -1,0 +1,14 @@
+---
+- include: ../../monit/handlers/main.yml
+
+- name: Reload nginx
+  service:
+    name: nginx
+    enabled: yes
+    state: reloaded
+
+- name: Ensure nginx is running
+  service:
+    name: nginx
+    enabled: yes
+    state: started

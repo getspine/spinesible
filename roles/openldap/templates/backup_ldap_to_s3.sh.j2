@@ -1,0 +1,25 @@
+#!/bin/bash
+# Backs up the slapd configuration database and HDB.
+
+set -ueo pipefail
+
+TIMESTAMP=$(date +%s%N)
+
+echo " - Starting OpenLDAP backup: ${TIMESTAMP}"
+logger "Starting OpenLDAP backup: ${TIMESTAMP}"
+
+S3_BUCKET='{{ openldap_backups_s3_bucket }}'
+KMS_KEY='{{ openldap_backups_kms_key }}'
+
+# Backs up the slapd configuration database
+tar cvzf /tmp/ldap-slapd.d-${TIMESTAMP}.tar.gz /etc/openldap/slapd.d
+slapcat -l /tmp/ldap-database-${TIMESTAMP}.ldif
+
+aws s3 cp --sse aws:kms --sse-kms-key-id ${KMS_KEY} "/tmp/ldap-slapd.d-${TIMESTAMP}.tar.gz" "s3://${S3_BUCKET}/backups/openldap/ldap-slapd.d-${TIMESTAMP}.tar.gz"
+aws s3 cp --sse aws:kms --sse-kms-key-id ${KMS_KEY} "/tmp/ldap-database-${TIMESTAMP}.ldif" "s3://${S3_BUCKET}/backups/openldap/ldap-database-${TIMESTAMP}.ldif"
+
+rm -rf "/tmp/ldap-slapd.d-${TIMESTAMP}.tar.gz"
+rm -rf "/tmp/ldap-database-${TIMESTAMP}.ldif"
+
+echo " - OpenLDAP backup succeeded: ${TIMESTAMP}"
+logger "OpenLDAP backup succeeded: ${TIMESTAMP}"

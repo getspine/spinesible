@@ -1,0 +1,3 @@
+---
+reboot_host: "{{ hostvars[inventory_hostname]['ec2_public_dns_name'] }}"
+reboot_ssh_port: 22

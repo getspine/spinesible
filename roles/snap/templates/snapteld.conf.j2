@@ -1,0 +1,37 @@
+# {{ ansible_managed }}
+# https://github.com/intelsdi-x/snap/blob/master/docs/SNAPTELD_CONFIGURATION.md
+---
+log_level: {{ snapd_log_level }}
+log_path: {{ snapd_log_path }}
+gomaxprocs: {{ snapd_max_processors }}
+
+control:
+  auto_discover_path: {{ snapd_auto_discover_path }}
+  cache_expiration: {{ snapd_cache_expiration }}
+  max_running_plugins: {{ snapd_max_running_plugins  }}
+  # keyring_paths: /etc/snap/keyrings
+  plugin_trust_level: {{ snapd_plugin_trust_level }}
+
+  # plugins section contains plugin config settings that will be applied for
+  # plugins across tasks.
+  plugins: {}
+
+scheduler:
+  work_manager_queue_size: {{ snapd_work_manager_queue_size }}
+  work_manager_pool_size: {{ snapd_work_manager_pool_size }}
+
+restapi:
+  enable: false
+  # https: false
+  # rest_auth: false
+  # rest_auth_password: changeme
+  # rest_certificate: /etc/snap/cert.pem
+  # rest_key: /etc/snap/cert.key
+  # port: 8181
+
+tribe:
+  enable: false
+  # bind_addr: 0.0.0.0
+  # bind_port: 6000
+  # name: snaphost-01
+  # seed: 192.168.1.2:6000

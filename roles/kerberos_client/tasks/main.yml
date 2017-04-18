@@ -1,0 +1,29 @@
+---
+#tasks file for kerberos_client
+- name: Install needed Kerberos client packages
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ krb_client_pkgs }}"
+  tags:
+    - kerberos
+    - kerberos_client
+
+- name: Copy client configuration file
+  template:
+    src: krb5.conf.j2
+    dest: /etc/krb5.conf
+    mode: 0644
+  tags:
+    - kerberos
+    - kerberos_client
+
+- name: Ensure that Kerberos keytabs are distributed
+  include: ensure_keytab_distributed.yml
+  with_items: "{{ krb5_keytabs }}"
+  loop_control:
+    loop_var: cur_krb5_keytab_name
+  tags:
+    - kerberos
+    - kerberos_client
+    - kerberos_keytabs

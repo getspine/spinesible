@@ -1,0 +1,19 @@
+#!/bin/bash
+# Executes an Ansible command.
+
+set -eo pipefail
+
+if [ $# -lt 2 ]; then
+  echo
+  echo "Runs ansible with the provided arguments."
+  echo "Usage: ./a DC arg1 [arg2...]"
+  exit 1
+fi
+
+DIR=$(git rev-parse --show-toplevel)
+INV="${DIR}/inventory/ec2"
+
+source ${DIR}/utils/spinedc
+source ${DIR}/env/bin/activate
+
+${DIR}/env/bin/ansible "${@}" -u ansibler -i ${INV}

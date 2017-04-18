@@ -1,0 +1,35 @@
+---
+- name: Ensure that private Route53 hosted zone ID is tracked
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_route53_zone_to_id#{{ spine_cur_route53_zone.zone }}"
+    value: "{{ private_route53_zone_response.set.zone_id }}"
+
+- name: "Ensure VPCs are associated to private Route53 zone: {{ spine_cur_route53_zone.zone }}"
+  route53_associate_vpcs:
+    hosted_zone_id: "{{ private_route53_zone_response.set.zone_id }}"
+    vpc_ids: "{{ spine_cur_route53_zone.vpcs[1:] | to_json }}"
+    region: "{{ spine_datacenter }}"
+    profile: "{{ spine_datacenter }}"
+  register: route53_associate_response
+
+- debug:
+    var: route53_associate_response
+
+- name: "Ensure Route53 zone created: {{ spine_cur_route53_zone.zone }} (if not associating VPCs)"
+  route53_zone:
+    zone: "{{ spine_cur_route53_zone.zone }}"
+    region: "{{ spine_datacenter }}"
+    profile: "{{ spine_datacenter }}"
+  register: route53_zone_response
+
+- debug:
+    var: route53_zone_response
+
+- name: Ensure that private Route53 hosted zone ID is tracked (if not associating VPCs)
+  yedit:
+    state: present
+    src: "dc_vars/{{ spine_datacenter }}.yml"
+    key: "spine_route53_zone_to_id#{{ spine_cur_route53_zone.zone }}"
+    value: "{{ route53_zone_response.set.zone_id }}"

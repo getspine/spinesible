@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+
+set daemon {{ check_interval_secs }}  # check services at {{ check_interval_secs }} second intervals
+
+set logfile /var/log/monit.log
+set idfile /var/lib/monit/id
+set statefile /var/lib/monit/state
+set mailserver localhost
+
+set eventqueue
+  basedir /var/lib/monit/events  # set the base directory where events will be stored
+  slots {{ event_queue_slots }}  # optionally limit the queue size
+
+set httpd port 2812 and
+  use address localhost  # only accept connection from localhost
+  allow localhost        # allow localhost to connect to the server
+
+set alert {{ monit_alert_email }} only on { timeout, nonexist }
+
+include /etc/monit.d/*

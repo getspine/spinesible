@@ -1,0 +1,226 @@
+---
+- name: Setup Mesos base user's group
+  group:
+    name: "{{ item }}"
+    system: yes
+  when: '"slave" in mesos_roles'
+  with_items:
+    - "{{ mesos_base_group }}"
+    - docker
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_users
+
+- name: Setup Mesos base user's user
+  user:
+    name: "{{ mesos_base_user }}"
+    system: yes
+    groups: "{{ mesos_base_group }},docker"
+    shell: /bin/docker-exec
+    createhome: yes
+  when: '"slave" in mesos_roles'
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_users
+
+- name: Create mesos user's .ssh directory
+  file:
+    path: "/home/{{ mesos_base_user }}/.ssh"
+    owner: "{{ mesos_base_user }}"
+    group: "{{ mesos_base_group }}"
+    mode: 0700
+    state: directory
+  when: mesos_setup_container_ssh
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_users
+
+- name: Ensure that required Mesos master directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+  with_items:
+    - "{{ mesos_work_dir }}/master"
+    - "{{ mesos_log_dir }}/master"
+    - "{{ mesos_state_dir }}/master"
+  when: '"master" in mesos_roles'
+  tags:
+    - mesos
+    - mesos_master
+
+- name: Ensure that required Mesos slave directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+  with_items:
+    - "{{ mesos_work_dir }}/slave"
+    - "{{ mesos_log_dir }}/slave"
+    - "{{ mesos_state_dir }}/slave"
+    - "/sys/fs/cgroup/memory/mesos"
+  when: '"slave" in mesos_roles'
+  tags:
+    - mesos
+    - mesos_slave
+
+- name: Template Mesos ZooKeeper quorum file
+  template:
+    src: zk.j2
+    dest: "{{ mesos_conf_dir }}/zk"
+    mode: 0644
+  notify:
+    - Restart Mesos master via Monit
+    - Restart Mesos slave via Monit
+  tags:
+    - mesos
+    - mesos_config
+
+- name: Template Mesos master startup scripts
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0755
+  notify:
+    - Restart Mesos master via Monit
+  when: '"master" in mesos_roles'
+  with_items:
+    - src: master-startup.sh.j2
+      dest: /usr/bin/mesos-master-startup
+    - src: mesos-master.sysconfig.j2
+      dest: /etc/sysconfig/mesos-master
+  tags:
+    - mesos
+    - mesos_config
+    - mesos_master
+
+- name: Template Mesos slave startup script
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0755
+  notify:
+    - Restart Mesos slave via Monit
+  when: '"slave" in mesos_roles'
+  with_items:
+    - src: slave-startup.sh.j2
+      dest: /usr/bin/mesos-slave-startup
+    - src: mesos-slave.sysconfig.j2
+      dest: /etc/sysconfig/mesos-slave
+  tags:
+    - mesos
+    - mesos_config
+    - mesos_slave
+
+- name: Setup a Monit configuration for the Mesos master
+  template:
+    src: mesos-master.monit.j2
+    dest: /etc/monit.d/mesos-master
+  when: '"master" in mesos_roles'
+  register: mesos_master_monit
+  tags:
+    - mesos
+    - mesos_config
+    - mesos_master
+
+- name: Setup a Monit configuration for the Mesos slave
+  template:
+    src: mesos-slave.monit.j2
+    dest: /etc/monit.d/mesos-slave
+  when: '"slave" in mesos_roles'
+  register: mesos_slave_monit
+  tags:
+    - mesos
+    - mesos_config
+    - mesos_slave
+
+- include: purge_slave.yml
+  when: '"slave" in mesos_roles and mesos_purge_slave_state'
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_purge_slave
+
+- name: Ensure that Monit is loaded with the latest configuration
+  service:
+    name: monit
+    state: reloaded
+  when: mesos_master_monit.changed or mesos_slave_monit.changed
+  tags:
+    - mesos
+    - mesos_config
+
+- name: Wait for Monit to get its act together
+  pause:
+    seconds: 10
+  when: mesos_master_monit.changed or mesos_slave_monit.changed
+  tags:
+    - mesos
+    - mesos_config
+
+- name: Ensure that the Mesos master is monitored by Monit
+  monit:
+    name: mesos-master
+    state: monitored
+  ignore_errors: yes
+  when: '"master" in mesos_roles'
+  tags:
+    - mesos
+    - mesos_master
+
+- name: Ensure that the Mesos slave is monitored by Monit
+  monit:
+    name: mesos-slave
+    state: monitored
+  ignore_errors: yes
+  when: '"slave" in mesos_roles'
+  tags:
+    - mesos
+    - mesos_slave
+
+- name: Write a Mesos logrotate
+  template:
+    src: mesos.logrotate.j2
+    dest: /etc/logrotate.d/mesos
+    mode: 0644
+  tags:
+    - mesos
+
+- name: Ensure that Master firewall ports are open
+  firewalld:
+    port: "{{ item.port }}/{{ item.type }}"
+    state: enabled
+    permanent: yes
+  when: '"master" in mesos_roles'
+  with_items: "{{ mesos_master_firewall_ports }}"
+  ignore_errors: yes
+  tags:
+    - mesos
+    - mesos_master
+    - mesos_firewall
+
+- name: Ensure that Slave firewall ports are open
+  firewalld:
+    port: "{{ item.port }}/{{ item.type }}"
+    state: enabled
+    permanent: yes
+  when: '"slave" in mesos_roles'
+  with_items: "{{ mesos_slave_firewall_ports }}"
+  ignore_errors: yes
+  tags:
+    - mesos
+    - mesos_slave
+    - mesos_firewall
+
+- name: Ensure that the Mesos master is shut down (if not running with the Master role)
+  service:
+    name: mesos-master
+    state: stopped
+    enabled: no
+  when: '"master" not in mesos_roles'
+  tags:
+    - mesos
+    - mesos_slave

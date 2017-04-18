@@ -1,0 +1,36 @@
+---
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat"
+  tags:
+    - monit
+
+- name: Create Monit state directories
+  file:
+    path: /var/lib/monit
+    owner: root
+    group: root
+    mode: 0700
+    state: directory
+  tags:
+    - monit
+
+- name: Establish monit.conf
+  template:
+    src: monit.conf.j2
+    dest: /etc/monit.conf
+    owner: root
+    group: root
+    mode: 0600
+  notify:
+    - Restart monit
+  tags:
+    - monit
+
+- name: Ensure Monit service is running
+  service:
+    name: monit
+    state: started
+    enabled: yes
+  when: monit_start_service
+  tags:
+    - monit

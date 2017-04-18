@@ -1,0 +1,42 @@
+---
+- name: "Template SELinux module: {{ selinux_module }}"
+  template:
+    src: "modules/{{ selinux_module }}.te.j2"
+    dest: "/etc/selinux/modules/{{ selinux_module }}.te"
+    owner: root
+    group: root
+    mode: 0600
+  register: selinux_module_te_file
+
+- name: "Check SELinux module: {{ selinux_module }}"
+  command: "checkmodule -M -m -o {{ selinux_module }}.mod {{ selinux_module }}.te"
+  args:
+    chdir: /etc/selinux/modules/
+  when: "{{ selinux_module_te_file.changed }}"
+  register: check_module_output
+
+- debug:
+    var: check_module_output
+  when: "{{ selinux_module_te_file.changed }}"
+
+- name: "Package SELinux module: {{ selinux_module }}"
+  command: "semodule_package -o {{ selinux_module }}.pp -m {{ selinux_module }}.mod"
+  args:
+    chdir: /etc/selinux/modules/
+  when: "{{ selinux_module_te_file.changed }}"
+  register: package_module_output
+
+- debug:
+    var: package_module_output
+  when: "{{ selinux_module_te_file.changed }}"
+
+- name: "Insert SELinux module: {{ selinux_module }}"
+  command: "semodule -i {{ selinux_module }}.pp"
+  args:
+    chdir: /etc/selinux/modules/
+  when: "{{ selinux_module_te_file.changed }}"
+  register: apply_module_output
+
+- debug:
+    var: apply_module_output
+  when: "{{ selinux_module_te_file.changed }}"

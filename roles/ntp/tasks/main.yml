@@ -1,0 +1,65 @@
+---
+- name: Set the correct timezone
+  file:
+    src: "/usr/share/zoneinfo/{{ ntp_timezone }}"
+    dest: /etc/localtime
+    state: link
+    force: yes
+  tags:
+    - ntp
+
+- name: Install all NTP packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ ntp_packages }}"
+  notify: Restart NTP
+  tags:
+    - ntp
+
+- name: Generate an ntp.conf file
+  template:
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
+  notify: Restart NTP
+  when: ntp_manage_config
+  tags:
+    - ntp
+
+- name: Force a time sync by stopping NTP (if forcing a time sync)
+  service:
+    name: ntpd
+    state: stopped
+  when: ntp_force_time_sync
+  ignore_errors: yes
+  tags:
+    - ntp
+    - ntp_force_time_sync
+
+- name: Force a time sync (if forcing a time sync)
+  command: "rdate {{ ntp_time_sync_host }}"
+  when: ntp_force_time_sync
+  ignore_errors: yes
+  tags:
+    - ntp
+    - ntp_force_time_sync
+
+- name: Ensure NTP is running and enabled as configured
+  service:
+    name: ntpd
+    state: started
+    enabled: yes
+  when: ntp_enabled
+  tags:
+    - ntp
+    - ntp_force_time_sync
+
+- name: Ensure NTP is stopped and disabled as configured
+  service:
+    name: ntpd
+    state: stopped
+    enabled: no
+  when: not ntp_enabled
+  ignore_errors: yes
+  tags:
+    - ntp

@@ -1,0 +1,41 @@
+---
+- name: Checkout Daemonize source
+  git:
+    repo: "{{ daemonize_git_repo }}"
+    dest: "{{ daemonize_source_dir }}/daemonize"
+    version: "release-{{ daemonize_version }}"
+    force: "{{ daemonize_rebuild }}"
+  tags:
+    - daemonize_rebuild
+
+- name: Ensure that Daemonize build environment is clean
+  command: make clean
+  args:
+    chdir: "{{ daemonize_source_dir }}/daemonize"
+  when: daemonize_rebuild == 'yes'
+  tags:
+    - daemonize_rebuild
+
+- name: Configure Daemonize Makefile
+  command: "./configure --prefix={{ daemonize_install_dir }}"
+  args:
+    chdir: "{{ daemonize_source_dir }}/daemonize"
+    creates: "{{ daemonize_source_dir }}/daemonize/Makefile"
+  tags:
+    - daemonize_rebuild
+
+- name: Build Daemonize
+  command: make
+  args:
+    chdir: "{{ daemonize_source_dir }}/daemonize"
+    creates: "{{ daemonize_source_dir }}/daemonize/daemonize"
+  tags:
+    - daemonize_rebuild
+
+- name: Ensure that newly-built Daemonize is present
+  command: "paco -lp daemonize-{{ daemonize_version }} -- make install"
+  args:
+    chdir: "{{ daemonize_source_dir }}/daemonize"
+    creates: "{{ daemonize_install_dir }}/bin/daemonize"
+  tags:
+    - daemonize_rebuild

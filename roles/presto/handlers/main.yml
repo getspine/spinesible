@@ -1,0 +1,6 @@
+---
+- name: Restart Presto server
+  service:
+    name: presto
+    state: restarted
+    enabled: yes

@@ -1,0 +1,7 @@
+---
+automake_gnu_mirror_base: https://ftp.gnu.org/gnu
+
+automake_install_dir: /usr
+automake_source_dir: /usr/src
+
+automake_version: 1.14

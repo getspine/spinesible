@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+# Ensures that kerberos kdc server is running.
+
+check process krb5kdc with pidfile /var/run/krb5kdc.pid
+  start program = "/bin/systemctl start krb5kdc.service"
+  stop program = "/bin/systemctl stop krb5kdc.service"
+  if cpu > 98% for 5 cycles then restart
+  if failed port {{ kdc_port }} type tcp for {{ kdc_failure_cycles_before_restart }} cycles then restart
