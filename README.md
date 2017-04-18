@@ -683,7 +683,7 @@ ok: [107.22.135.212]
 Using the Vault
 ---------------
 
-Wrapper scrips such as ```v``` and ```vplay``` take advantage of the [Ansible Vault](http://docs.ansible.com/ansible/playbooks_vault.html), a feature which encrypts sensitive credentials, allowing them to be checked into a source repo like this one.
+Wrapper scripts such as ```v``` and ```vplay``` take advantage of the [Ansible Vault](http://docs.ansible.com/ansible/playbooks_vault.html), a feature which encrypts sensitive credentials, allowing them to be checked into a source repo like this one.
 
 We've provided an example vault configuration in ```vault/creds.yml```, locked with the following password:
 
