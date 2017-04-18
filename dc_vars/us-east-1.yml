@@ -1,43 +1,10 @@
-spine_id_to_sg_name:
-  sg-290c5756: backbone-bastion
-  sg-4c9cb933: backbone-aurora
-  sg-53550e2c: backbone-bastion
-  sg-a9b293d6: backbone-aggregator
-spine_id_to_subnet:
-  subnet-54918d0f: 10.0.128.0/18
-  subnet-5fd3a963: 10.0.192.0/18
-  subnet-96c9b3aa: 10.0.192.0/18
-  subnet-98287afd: 10.0.0.0/18
-  subnet-dc396bb9: 10.0.0.0/18
-  subnet-dd9f7ef1: 10.0.64.0/18
-  subnet-ebb9a5b0: 10.0.128.0/18
-  subnet-fe8b6ad2: 10.0.64.0/18
-spine_id_to_vpc:
-  vpc-24393442: 10.0.0.0/16
-  vpc-821b16e4: 10.0.0.0/16
+spine_id_to_sg_name: {}
+spine_id_to_subnet: {}
+spine_id_to_vpc: {}
 spine_peering_connections: {}
-spine_route53_zone_to_id:
-  0.10.in-addr.arpa.: Z3L8EDI9UP6OAE
-  backbone.example.com.: Z2CV4O6BOA78KY
-spine_sg_name_to_id:
-  backbone:
-    backbone-aggregator: sg-a9b293d6
-    backbone-aurora: sg-4c9cb933
-    backbone-bastion: sg-53550e2c
-spine_sg_to_id:
-  backbone:
-    aggregator:
-      10.0.0.0/16: sg-a9b293d6
-    aurora:
-      10.0.0.0/16: sg-4c9cb933
-    bastion:
-      10.0.0.0/16: sg-53550e2c
-spine_subnet_to_id:
-  10.0.0.0/18: subnet-98287afd
-  10.0.128.0/18: subnet-ebb9a5b0
-  10.0.192.0/18: subnet-96c9b3aa
-  10.0.64.0/18: subnet-dd9f7ef1
-spine_vpc_to_id:
-  10.0.0.0/16: vpc-24393442
-spine_vpc_to_igw_id:
-  10.0.0.0/16: igw-0d43866b
+spine_route53_zone_to_id: {}
+spine_sg_name_to_id: {}
+spine_sg_to_id: {}
+spine_subnet_to_id: {}
+spine_vpc_to_id: {}
+spine_vpc_to_igw_id: {}
