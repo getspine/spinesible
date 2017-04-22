@@ -11,13 +11,14 @@ Spinesible: An Ansible Backbone
 [![Twitter Follow](https://img.shields.io/twitter/follow/get_spine.svg?style=social&label=Follow)](https://twitter.com/get_spine)
 [![Slack](https://support.spi.ne/badge.svg)](https://support.spi.ne/)
 
-All of [Spine's](https://spi.ne) cloud native infrastructure is automated via [Ansible](https://www.ansible.com), allowing us to swiftly perform infrastructure updates on the fly. We wrote a whole bunch of Ansible roles and scaffolding in the process and we've decided to open source it here, as we figured it'd be useful to others.
+All of [Spine's](https://spi.ne) cloud native infrastructure is automated via [Ansible](https://www.ansible.com), allowing us to swiftly perform infrastructure updates on the fly. We wrote a whole bunch of Ansible roles and scaffolding in the process and we've decided to open source it here, as we figured that it'd be useful to others.
 
-If you're just getting started with AWS and Ansible, it's our hope that this repo can give you a good starting place to work from when building an infrastructure.
+If you're just getting started with [Amazon Web Services](https://aws.amazon.com), it's our hope that this repo can provide you with some battle-tested means for building a powerful containerized platform, using the same technologies which power companies like [Twitter](https://twitter.com), [Apple](https://apple.com), [Uber](https://uber.com), [Foursquare](https://foursquare.com), and [Fitbit](https://fitbit.com).
 
 Table of Contents
 -----------------
 
+   * [Getting Started](#getting-started)
    * [What is a Datacenter?](#what-is-a-datacenter)
       * [The DC Config](#the-dc-config)
       * [Step 1: Network Setup](#step-1-network-setup)
@@ -68,7 +69,7 @@ $ sudo pip install virtualenv
 # Fedora
 $ sudo dnf install -y python-virtualenv
 
-# Newer-school Red Hat (EL7+)
+# New-school Red Hat (EL7+)
 $ sudo yum install -y python-virtualenv
 
 # Old-school Red Hat (older than EL7)
@@ -77,14 +78,14 @@ $ sudo yum install -y python27 python27-virtualenv
 $ scl enable python27
 ```
 
-2. Run the environment setup script to install Ansible, the AWS CLI, and all dependencies:
+2. Run the environment setup script to install [Ansible](https://www.ansible.com), the [AWS CLI](https://aws.amazon.com/cli/), and all dependencies:
 
 ```bash
 $ ./setup_ansible
 $ source env/bin/activate
 ```
 
-By sourcing the virtualenv activation script, we add all needed binaries to the ```PATH```.
+By sourcing the **virtualenv activation script**, we add all of our installed binaries and Python libraries to the current shell's ```PATH``` and ```PYTHONPATH```. Be certain to **source this script whenever using Spinesible**. If you'd like to do so automatically, the great [Kenneth Reitz](https://www.kennethreitz.org/) created a tool called [autoenv](https://github.com/kennethreitz/autoenv/) which accomplishes these ends.
 
 3. Create a [new administrator user in IAM](http://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started_create-admin-group.html) with **programmatic access** then create a Boto credentials file in ```~/.aws/credentials```:
 
@@ -100,7 +101,7 @@ EOF
 
 https://aws.amazon.com/marketplace/pp/B00O7WM7QW
 
-5. Provision up the example datacenter, **us-east-1**:
+5. Provision up the example Datacenter, **us-east-1**:
 
 ```
 $ ./provision_dc us-east-1
@@ -109,23 +110,25 @@ $ ssh ansibler@<a new EC2 instance IP>
 
 **PLEASE NOTE**: This command will build out a lot of infrastructure, including [Aurora](http://aurora.apache.org/), [Mesos](http://mesos.apache.org/), and [Kafka](http://kafka.apache.org/), so you may wish to modify the example configuration to suit your organization's needs.
 
-To do so, read on:
+To do so, **read on**:
 
 What is a Datacenter?
 =====================
 
-A datacenter is a collection of **region-based AWS resources**: VPCs, VPC subnets, security groups, internal Route 53 DNS zones, and the configured EC2 instances which will run your own services.
+A Datacenter is a collection of **region-based AWS resources**: [VPCs](https://aws.amazon.com/vpc/), [VPC subnets](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html), [security groups](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html), [private Route 53 DNS zones](http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-private.html), and the configured [EC2 instances](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Instances.html) which will run your own services.
 
 The DC Config
 -------------
 
 EC2 instances require an **initial AWS environment** within which to run. This step is somewhat involved, which is why many opt for the defaults offered upon the creation of an AWS account. If not using defaults, VPC creation is often performed manually via the AWS UI, which can introduce uncertainty and operator error into a complex equation.
 
-That's why Spinesible condenses this information into a **single configuration file**, allowing you to refer to the layout of your AWS resources at a glance.
+That's why Spinesible condenses all configuration for a Datacenter into a **single configuration file**, which contains the layout of all the resources needed in a **single AWS region**.
 
-We've included an example configuration, located at ```dc_config/us-east-1.yml```. This file contains the layout for a datacenter in AWS region **us-east-1**.
+We've included an example configuration, located at ```dc_config/us-east-1.yml```. This file contains the layout for a Datacenter in AWS region **us-east-1**.
 
-To understand how best to configure your own datacenter, let's take you through the datacenter provisioning process:
+We prefer this strategy over manual configuration for two reasons: it makes it **easier to reason about your AWS usage** and provides for **swift reference during an incident**.
+
+To understand how best to configure your own Datacenter, let's take you through the provisioning process:
 
 Step 1: Network Setup
 ---------------------
@@ -204,7 +207,7 @@ To learn more about how to configure this module, refer to the [ec2_vpc_route_ta
 Step 3: DNS
 -----------
 
-Hostnames are a powerful concept, with the power to quickly convey useful information about any node in your infrastructure. This is why Spinesible creates custom [internal Route 53 zones](http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-private.html):
+Hostnames are a powerful concept, with the ability to cheaply convey useful information about any node in your infrastructure. This is why Spinesible creates custom [private Route 53 zones](http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-private.html):
 
 ```yaml
 spine_route53_zones:
@@ -229,11 +232,11 @@ This is why we need to add a reverse DNS zone for IP addresses in our VPC, those
 lookup 10.0.34.129 -> DNS queried at 129.34.0.10.in-addr.arpa.
 ```
 
-This is why we create a zone called ```0.10.in-addr.arpa.```; it will contain the reverse DNS records for all hosts provisioned in our VPC.
+As such, we create a zone called ```0.10.in-addr.arpa.```. It will contain the reverse DNS records for all hosts provisioned in our VPC.
 
 ### Sidebar: DC vars strike again
 
-As you might have surmised, ```spine_vpc_to_id``` is a field provided to us by our **DC vars**; in this case, it allows us to refer to the AWS VPC identifier (e.g. vpc-01268776) by CIDR identifier (e.g. 10.0.0.0/16).
+As you might have surmised, ```spine_vpc_to_id``` is a field provided to us by our **DC vars**; in this case, it allows us to refer to the AWS VPC identifier (e.g. vpc-01268776) via a Datacenter-agnostic CIDR identifier (e.g. 10.0.0.0/16).
 
 Step 4: IAM
 -----------
@@ -246,7 +249,7 @@ Thankfully, AWS has a useful feature called an [IAM instance profile](http://doc
 http://169.254.169.254/latest/meta-data/
 ```
 
-An IAM instance profile is created for every IAM role you define. In our automation, we create a role called ```spine_es``` and associate it with a policy called ```es.json.j2```, located in ```roles/provision_iam/templates/es.json.j2```:
+An IAM instance profile is **automatically created for every IAM role you define**. In our automation, we create a role called ```spine_es``` and associate it with a policy called ```es.json.j2```, located in ```roles/provision_iam/templates/es.json.j2```:
 
 ```yaml
 spine_iam_policies:
@@ -445,7 +448,7 @@ The creation of the initial inventory can take a while, so the inventory script 
 To speed up Ansible operations, we've set an arbitrarily high cache timeout (1 hour), but this can be overridden by setting the following environment variable:
 
 ```bash
-export PURGE_EC2_CACHE=true
+$ export PURGE_EC2_CACHE=true
 ```
 
 Repo Layout
@@ -494,15 +497,15 @@ Bootstrapping
 -------------
 
 ```bash
-./bootstrap [datacenter] [ansible_hosts_tag]
+$ ./bootstrap [datacenter] [ansible_hosts_tag]
 ```
 
 The **bootstrap** role contains a **base configuration that all nodes utilize** and **ensures that the base configuration is up-to-date**.
 
-To update **all nodes in a datacenter**:
+To update **all nodes in a Datacenter**:
 
 ```bash
-./bootstrap us-east-1 all
+$ ./bootstrap us-east-1 all
 
 PLAY [Bootstrap new server node] ***********************************************
 
@@ -517,7 +520,7 @@ ok: [107.22.135.212]
 To update a **single nodeclass**:
 
 ```bash
-./bootstrap us-east-1 tag_ansible_group_aurora
+$ ./bootstrap us-east-1 tag_ansible_group_aurora
 
 PLAY [Bootstrap new server node] ***********************************************
 
@@ -532,18 +535,18 @@ ok: [107.22.135.212]
 Wrappers
 --------
 
-In the interest of simplicity, we've included a few wrapper scripts to simplify the invocation of Ansible. They tie in our EC2 dynamic inventory, virtualenv Ansible binaries, and aforementioned datacenter configuration system.
+In the interest of simplicity, we've included a few wrapper scripts to simplify the invocation of Ansible. They tie in our EC2 dynamic inventory, virtualenv Ansible binaries, and aforementioned Datacenter configuration system.
 
 ### a
 
 ```bash
-./a [datacenter] [args]
+$ ./a [datacenter] [args]
 ```
 
 Works like calling the 'ansible' binary directly; arguments are simply passed through.  For instance, you could obtain the full list of Ansible host facts like so:
 
 ```bash
-./a us-east-1 tag_ansible_group_aurora -m setup
+$ ./a us-east-1 tag_ansible_group_aurora -m setup
 
 107.22.135.212 | SUCCESS => {
     "ansible_facts": {
@@ -562,13 +565,13 @@ Works like calling the 'ansible' binary directly; arguments are simply passed th
 ### hostvars
 
 ```bash
-./hostvars [datacenter] [ansible_hosts_tag]
+$ ./hostvars [datacenter] [ansible_hosts_tag]
 ```
 
 Dumps the Ansible hostvars for all hosts matching the provided tag, such as ```tag_ansible_group_aurora``` or ```tag_ansible_group_es_master```:
 
 ```bash
-./hostvars us-east-1 tag_ansible_group_aaa
+$ ./hostvars us-east-1 tag_ansible_group_aaa
 
 107.22.135.212 | SUCCESS => {
     "hostvars": {
@@ -587,13 +590,13 @@ Dumps the Ansible hostvars for all hosts matching the provided tag, such as ```t
 ### runcmd
 
 ```bash
-./runcmd [datacenter] [ansible_group] '[command]'
+$ ./runcmd [datacenter] [ansible_group] '[command]'
 ```
 
 Convenience wrapper for a **root Bash command blast** across all nodes in the provided ```ansible_group```, like ```aurora``` or ```jenkins```.  Be certain that all **commands are enclosed within single-quotes** like above.
 
 ```bash
-./runcmd us-east-1 aaa 'whoami'
+$ ./runcmd us-east-1 aaa 'whoami'
 
  - Executing shell command across group aaa in us-east-1: whoami
 107.22.135.212 | SUCCESS | rc=0 >>
@@ -603,13 +606,13 @@ root
 ### ssh_push
 
 ```bash
-./ssh_push [datacenter] [ansible_hosts_tag]
+$ ./ssh_push [datacenter] [ansible_hosts_tag]
 ```
 
 Distributes all SSH keys (from the bootstrap role) to all the nodes matching the provided Ansible hosts tag.
 
 ```bash
-./ssh_push us-east-1 tag_ansible_group_aaa
+$ ./ssh_push us-east-1 tag_ansible_group_aaa
 
 PLAY [Bootstrap new server node] ***********************************************
 
@@ -626,7 +629,7 @@ ok: [107.22.135.212] =>
 ### tag
 
 ```bash
-./tag [datacenter] [ansible_group] [key] [value]
+$ ./tag [datacenter] [ansible_group] [key] [value]
 ```
 
 Adds an EC2 tag to the provided Ansible group.
@@ -634,7 +637,7 @@ Adds an EC2 tag to the provided Ansible group.
 ### tagdel
 
 ```bash
-./tagdel [datacenter] [ansible_group] [key] [value]
+$ ./tagdel [datacenter] [ansible_group] [key] [value]
 ```
 
 Removes an EC2 tag from the provided Ansible group.
@@ -642,13 +645,13 @@ Removes an EC2 tag from the provided Ansible group.
 ### v
 
 ```bash
-./v [datacenter] [args]
+$ ./v [datacenter] [args]
 ```
 
 Works like calling the 'ansible-playbook' binary directly, including **Vault parameters** authenticated by ```--vault-password-file ~/.vault```.
 
 ```bash
-./v us-east-1 aaa.yml
+$ ./v us-east-1 aaa.yml
 
 PLAY [Establishes a AAA (Authentication, Authorization, and Accounting) node] ***
 
@@ -662,13 +665,13 @@ ok: [107.22.135.212]
 ### vplay
 
 ```bash
-./vplay [datacenter] [args]
+$ ./vplay [datacenter] [args]
 ```
 
 Works like calling the 'ansible-playbook' binary directly, including **Vault parameters** authenticated by **direct console password input**.
 
 ```bash
-./v us-east-1 aaa.yml
+$ ./v us-east-1 aaa.yml
 Vault password:
 
 PLAY [Establishes a AAA (Authentication, Authorization, and Accounting) node] ***
@@ -703,7 +706,7 @@ If multiple members of your team edit the Vault file simultaneously, you can use
 Provisioning
 ------------
 
-Spinesible's provisioning automation will provision all necessary resources to run complex services within a datacenter.  All datacenters **need to be configured** with a file in the ```dc_config``` subdir; furthermore, **any resources they create** will be tracked via a **dynamically-updated file** in the ```dc_vars``` subdir.
+Spinesible's provisioning automation will provision all necessary resources to run complex services within a Datacenter.  All Datacenters **need to be configured** with a file in the ```dc_config``` subdir; furthermore, **any resources they create** will be tracked via a **dynamically-updated file** in the ```dc_vars``` subdir.
 
 The provisioning process is divided into **four phases**:
 
